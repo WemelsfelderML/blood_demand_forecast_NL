@@ -1,9 +1,9 @@
 # Stored input and output
-.txt
-.csv
-.png
-.xlsm
-.html
+*.txt
+*.csv
+*.png
+*.xlsm
+*.html
 
 
 # History files
