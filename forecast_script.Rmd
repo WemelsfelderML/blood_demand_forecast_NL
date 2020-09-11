@@ -42,7 +42,7 @@ setwd(ROOTDIR)
 
 ```{r read_files, include = FALSE}
 # Read data file
-d <- read.delim(file = "data.csv", header = FALSE, sep = ";")
+d <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
 d <- d[d$V2 != "",]
 ```
 
