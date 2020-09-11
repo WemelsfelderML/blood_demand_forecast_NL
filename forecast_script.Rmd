@@ -5,7 +5,7 @@ output: html_document
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 # Set working directory
-ROOTDIR <- "/home/merel/Documents/Sanquin/Finland/" # Your directory
+ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL" # Your directory
 HISTORYDIR <- paste0(ROOTDIR, "histories/") # monthly
 MONTHLYDIR <- paste0(ROOTDIR, "histories/monthly_") # monthly
 WEEKLYDIR <- paste0(ROOTDIR, "histories/weekly_") # weekly

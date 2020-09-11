@@ -3,7 +3,7 @@ library(stringr)
 colors = brewer.pal(12, name="Paired")
 
 # Set working directory
-ROOTDIR <- "/home/merel/Documents/Sanquin/Finland" # Your directory
+ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL" # Your directory
 HISTORYDIR <- paste0(ROOTDIR, "/histories/") # monthly
 MONTHLYDIR <- paste0(ROOTDIR, "/histories/monthly_") # monthly
 WEEKLYDIR <- paste0(ROOTDIR, "/histories/weekly_") # weekly
