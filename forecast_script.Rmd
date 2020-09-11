@@ -5,7 +5,7 @@ output: html_document
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 # Set working directory
-ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL" # Your directory
+ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/" # Your directory
 HISTORYDIR <- paste0(ROOTDIR, "histories/") # monthly
 MONTHLYDIR <- paste0(ROOTDIR, "histories/monthly_") # monthly
 WEEKLYDIR <- paste0(ROOTDIR, "histories/weekly_") # weekly
@@ -44,6 +44,9 @@ setwd(ROOTDIR)
 # Read data file
 d <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
 d <- d[d$V2 != "",]
+
+# Set rolling window size in years
+rw_years <- 3
 ```
 
 ```{r modify_dataframe, include = FALSE}
@@ -231,7 +234,7 @@ monthly_real <- data.frame(date = months,
                            plat.ret = plat.retrn.monthly$pcs,
                            plat.sales = plat.monthly$pcs - plat.retrn.monthly$pcs)
 
-beginning <- head(tail(monthly$date, 49), 1) # Define beginning of (monthly) time here
+beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1) # Define beginning of (monthly) time here
 last_month <- tail(monthly_real$date, 1) # Not using "today()" as the data may not reach to current date
 
 # We will need these stored
@@ -267,7 +270,7 @@ weekly <- data.frame(week = red.weekly$week,
                      ABplus = ABplus.weekly$pcs,
                      plat = plat.weekly$pcs)
 
-wbeginning <- head(tail(weekly$startdate, 209), 1) # Define beginning of (weekly) time here
+wbeginning <- head(tail(weekly$startdate, ((rw_years+1) * 52 + 1)), 1) # Define beginning of (weekly) time here
 ```
 
 ## 6 month forecast {.tabset .tabset-fade .tabset-pills}
@@ -276,22 +279,22 @@ wbeginning <- head(tail(weekly$startdate, 209), 1) # Define beginning of (weekly
 ```{r monthly_model_selection_red, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$red, 49), 48)
+segment <- head(tail(monthly$red, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("All Red\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("All Red\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_red, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Extended for yearly estimates
-fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly")
+fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -300,8 +303,8 @@ fdf_red_for_tables <- fdf_for_tables * reverse_adj # The tables need anything fr
 
 ```{r save_monthly_red, echo = FALSE}
 type <- "red"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_red_fig, fig.align = "center", echo = FALSE}
@@ -321,19 +324,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_Ominus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$Ominus, 49), 48)
+segment <- head(tail(monthly$Ominus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("O-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("O-\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_Ominus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -341,8 +344,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Ominus, echo = FALSE}
 type <- "Ominus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Ominus_fig, fig.align = "center", echo = FALSE}
@@ -362,19 +365,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_Oplus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$Oplus, 49), 48)
+segment <- head(tail(monthly$Oplus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("O+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("O+\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_Oplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -382,8 +385,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Oplus, echo = FALSE}
 type  <- "Oplus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Oplus_fig, fig.align = "center", echo = FALSE}
@@ -403,19 +406,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_Aminus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$Aminus, 49), 48)
+segment <- head(tail(monthly$Aminus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("A-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("A-\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_Aminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -423,8 +426,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Aminus, echo = FALSE}
 type <- "Aminus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Aminus_fig, fig.align = "center", echo = FALSE}
@@ -444,19 +447,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_Aplus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$Aplus, 49), 48)
+segment <- head(tail(monthly$Aplus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("A+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("A+\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_Aplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -464,8 +467,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Aplus, echo = FALSE}
 type <- "Aplus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Aplus_fig, fig.align = "center", echo = FALSE}
@@ -485,19 +488,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_Bminus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$Bminus, 49), 48)
+segment <- head(tail(monthly$Bminus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("B-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("B-\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_Bminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -505,8 +508,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Bminus, echo = FALSE}
 type <- "Bminus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Bminus_fig, fig.align = "center", echo = FALSE}
@@ -526,19 +529,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_Bplus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$Bplus, 49), 48)
+segment <- head(tail(monthly$Bplus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("B+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("B+\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_Bplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -546,8 +549,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Bplus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 type <- "Bplus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Bplus_fig, fig.align = "center", echo = FALSE}
@@ -567,19 +570,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_ABminus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$ABminus, 49), 48)
+segment <- head(tail(monthly$ABminus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("AB-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("AB-\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_ABminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -587,8 +590,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_ABminus, echo = FALSE}
 type <- "ABminus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_ABminus_fig, fig.align = "center", echo = FALSE}
@@ -608,19 +611,19 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_ABplus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$ABplus, 49), 48)
+segment <- head(tail(monthly$ABplus, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("AB+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("AB+\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_ABplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
@@ -628,8 +631,8 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_ABplus, echo = FALSE}
 type <- "ABplus"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj) # Check pffunctions.R
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_ABplus_fig, fig.align = "center", echo = FALSE}
@@ -649,20 +652,20 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 ```{r monthly_model_selection_plat, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(monthly$plat, 49), 48)
+segment <- head(tail(monthly$plat, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("All Platelets\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly")
+cat("All Platelets\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r monthly_fcast_plat, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly")
-fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
+fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 fdf_pla_for_tables <- fdf_for_tables * reverse_adj # The tables need anything from 6 months to 23 months, so we just scale everything from the extended
@@ -670,8 +673,8 @@ fdf_pla_for_tables <- fdf_for_tables * reverse_adj # The tables need anything fr
 
 ```{r save_monthly_plat, echo = FALSE}
 type <- "plat"
-save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj)
-# write.csv(fdf, paste0(MONTHLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_pla_fig, fig.align = "center", echo = FALSE}
@@ -816,8 +819,8 @@ datatable(df2, rownames = TRUE, options = list(autoWidth = TRUE,
                                                ordering = FALSE), 
           class = "cell-border")
 
-write.csv(df1, paste0(MONTHLYDIR, "hist_fcast_19.csv"), row.names = FALSE)
-write.csv(df2, paste0(MONTHLYDIR, "hist_fcast_181920.csv"), row.names = FALSE)
+write.csv(df1, paste0(MONTHLYDIR, "table1_", rw_years, ".csv"), row.names = FALSE)
+write.csv(df2, paste0(MONTHLYDIR, "table2_", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ## 4 week forecast {.tabset .tabset-fade .tabset-pills}
@@ -826,26 +829,26 @@ write.csv(df2, paste0(MONTHLYDIR, "hist_fcast_181920.csv"), row.names = FALSE)
 ```{r weekly_model_selection_red, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$red, 209), 208)
+segment <- head(tail(weekly$red, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
 # source("pffunctions.R")
-cat("All Red\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("All Red\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_red, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_red, echo = FALSE}
 type <- "red"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_red_fig, fig.align = "center", echo = FALSE}
@@ -865,25 +868,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_Ominus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$Ominus, 209), 208)
+segment <- head(tail(weekly$Ominus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("O-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("O-\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_Ominus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_Ominus, echo = FALSE}
 type <- "Ominus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Ominus_fig, fig.align = "center", echo = FALSE}
@@ -903,25 +906,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_Oplus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$Oplus, 209), 208)
+segment <- head(tail(weekly$Oplus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("O+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("O+\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_Oplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_Oplus, echo = FALSE}
 type <- "Oplus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Oplus_fig, fig.align = "center", echo = FALSE}
@@ -941,25 +944,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_Aminus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$Aminus, 209), 208)
+segment <- head(tail(weekly$Aminus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("A-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("A-\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_Aminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_Aminus, echo = FALSE}
 type <- "Aminus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Aminus_fig, fig.align = "center", echo = FALSE}
@@ -979,25 +982,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_Aplus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$Aplus, 209), 208)
+segment <- head(tail(weekly$Aplus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("A+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("A+\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_Aplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_Aplus, echo = FALSE}
 type <- "Aplus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Aplus_fig, fig.align = "center", echo = FALSE}
@@ -1017,25 +1020,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_Bminus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$Bminus, 209), 208)
+segment <- head(tail(weekly$Bminus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("B-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("B-\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_Bminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_Bminus, echo = FALSE}
 type <- "Bminus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Bminus_fig, fig.align = "center", echo = FALSE}
@@ -1055,25 +1058,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_Bplus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$Bplus, 209), 208)
+segment <- head(tail(weekly$Bplus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("B+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("B+\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_Bplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_Bplus, echo = FALSE}
 type <- "Bplus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Bplus_fig, fig.align = "center", echo = FALSE}
@@ -1093,25 +1096,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_ABminus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$ABminus, 209), 208)
+segment <- head(tail(weekly$ABminus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("AB-\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("AB-\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_ABminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_ABminus, echo = FALSE}
 type <- "ABminus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_ABminus_fig, fig.align = "center", echo = FALSE}
@@ -1131,25 +1134,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_ABplus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$ABplus, 209), 208)
+segment <- head(tail(weekly$ABplus, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("AB+\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("AB+\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_ABplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_ABplus, echo = FALSE}
 type <- "ABplus"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_ABplus_fig, fig.align = "center", echo = FALSE}
@@ -1169,25 +1172,25 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r weekly_model_selection_plat, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-segment <- head(tail(weekly$plat, 209), 208)
+segment <- head(tail(weekly$plat, ((rw_years+1) * 52 + 1)), ((rw_years+1) * 52))
 series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
 
-cat("All Platelets\n\n", file="apes.txt", append=TRUE)
-chosen.model <- select_model(wbeginning, series.ts, "weekly")
+cat("All Platelets\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years)
 modelname <- modelnames[chosen.model]
-cat("chosen model: ", modelname, "\n\n", file="apes.txt", append=TRUE)
-cat("-------\n\n", file="apes.txt", append=TRUE)
+cat("chosen model: ", modelname, "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+cat("-------\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
 ```
 
 ```{r weekly_fcast_plat, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
-fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly")
+fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
 ```
 
 ```{r save_weekly_plat, echo = FALSE}
 type <- "plat"
-# save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj)
-write.csv(fdf, paste0(WEEKLYDIR, type, ".csv"), row.names = FALSE)
+# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
+write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_plat_fig, fig.align = "center", echo = FALSE}

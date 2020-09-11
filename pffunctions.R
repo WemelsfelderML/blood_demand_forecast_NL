@@ -46,7 +46,7 @@ aggregate_weekly <- function(series){
   return(weekly)
 }
 
-find_errors <- function(beginning, series.ts, method = "none", freq = "monthly"){
+find_errors <- function(beginning, series.ts, method = "none", freq = "monthly", rw_years = 3){
   # Used in model selection
   # 
   # param:: beginning: Beginning of the series
@@ -57,11 +57,11 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly")
   
   apes <- c()
   if(freq == "monthly"){
-    for(i in seq(length(series.ts) - 37)){
+    for(i in seq(length(series.ts) - (rw_years * 12 + 1))){
       # Define training and testing set as ROLLING WINDOW
       
-      train <- ts(series.ts[i:(35 + i)], start = decimal_date(beginning) + months(i - 1), frequency = 12)
-      test <- ts(series.ts[(36 + i)], start = decimal_date(beginning) + months(36 + i), frequency = 12)
+      train <- ts(series.ts[i:(rw_years * 12 - 1 + i)], start = decimal_date(beginning) + months(i - 1), frequency = 12)
+      test <- ts(series.ts[(rw_years * 12 + i)], start = decimal_date(beginning) + months(rw_years * 12 + i), frequency = 12)
       
       # xregs for arimax
       nrow <- length(train)
@@ -209,16 +209,16 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly")
       apes <- c(apes, ape)
     }
     
-    cat("method: ", method, "\n", file="apes.txt", append=TRUE)
-    cat("all errors: ", apes, "\n", file="apes.txt", append=TRUE)
-    cat("mean error: ", mean(apes), "\n\n", file="apes.txt", append=TRUE)
+    cat("method: ", method, "\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+    cat("all errors: ", apes, "\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+    cat("mean error: ", mean(apes), "\n\n", file=paste0("errors/m_errors_rwy", rw_years, ".txt"), append=TRUE)
   } 
   if(freq == "weekly"){
-    for(i in seq(length(series.ts) - 157)){
+    for(i in seq(length(series.ts) - (rw_years * 52 + 1))){
       # Define training and testing set as ROLLING WINDOW
       
-      train <- ts(series.ts[i:(155 + i)], start = decimal_date(beginning) + weeks(i - 1), frequency = 52)
-      test <- ts(series.ts[(156 + i)], start = decimal_date(beginning) + weeks(156 + i), frequency = 52)
+      train <- ts(series.ts[i:(rw_years * 52 - 1 + i)], start = decimal_date(beginning) + weeks(i - 1), frequency = 52)
+      test <- ts(series.ts[(rw_years * 52 + i)], start = decimal_date(beginning) + weeks(rw_years * 52 + i), frequency = 52)
       
       # xregs for arimax
       nrow <- length(train)
@@ -366,29 +366,29 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly")
       apes <- c(apes, ape)
     }
     
-    cat("method: ", method, "\n", file="apes.txt", append=TRUE)
-    cat("all errors: ", apes, "\n", file="apes.txt", append=TRUE)
-    cat("mean error: ", mean(apes), "\n\n", file="apes.txt", append=TRUE)
+    cat("method: ", method, "\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+    cat("all errors: ", apes, "\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+    cat("mean error: ", mean(apes), "\n\n", file=paste0("errors/w_errors_rwy", rw_years, ".txt"), append=TRUE)
   }
   
   return(apes)
 }
 
-select_model <- function(beginning, series.ts, freq){
+select_model <- function(beginning, series.ts, freq, rw_years){
   # Standard
-  snaive.apes <- find_errors(beginning, series.ts, "snaive", freq = freq)
-  ma5.apes <- find_errors(beginning, series.ts, "5-MA", freq = freq)
-  ma7.apes <- find_errors(beginning, series.ts, "7-MA", freq = freq)
-  ma9.apes <- find_errors(beginning, series.ts, "9-MA", freq = freq)
-  ma12.apes <- find_errors(beginning, series.ts, "12-MA", freq = freq)
-  stl.apes <- find_errors(beginning, series.ts, "stl", freq = freq)
-  ets.apes <- find_errors(beginning, series.ts, "ets", freq = freq)
-  tbats.apes <- find_errors(beginning, series.ts, "tbats", freq = freq)
-  stlf.apes <- find_errors(beginning, series.ts, "stlf", freq = freq)
-  arimax.apes <- find_errors(beginning, series.ts, "arimax", freq = freq)
-  dynreg.apes <- find_errors(beginning, series.ts, "dynreg", freq = freq)
-  nn.apes <- find_errors(beginning, series.ts, "nn", freq = freq)
-  comb.apes <- find_errors(beginning, series.ts, "combined", freq = freq)
+  snaive.apes <- find_errors(beginning, series.ts, "snaive", freq = freq, rw_years = rw_years)
+  ma5.apes <- find_errors(beginning, series.ts, "5-MA", freq = freq, rw_years = rw_years)
+  ma7.apes <- find_errors(beginning, series.ts, "7-MA", freq = freq, rw_years = rw_years)
+  ma9.apes <- find_errors(beginning, series.ts, "9-MA", freq = freq, rw_years = rw_years)
+  ma12.apes <- find_errors(beginning, series.ts, "12-MA", freq = freq, rw_years = rw_years)
+  stl.apes <- find_errors(beginning, series.ts, "stl", freq = freq, rw_years = rw_years)
+  ets.apes <- find_errors(beginning, series.ts, "ets", freq = freq, rw_years = rw_years)
+  tbats.apes <- find_errors(beginning, series.ts, "tbats", freq = freq, rw_years = rw_years)
+  stlf.apes <- find_errors(beginning, series.ts, "stlf", freq = freq, rw_years = rw_years)
+  arimax.apes <- find_errors(beginning, series.ts, "arimax", freq = freq, rw_years = rw_years)
+  dynreg.apes <- find_errors(beginning, series.ts, "dynreg", freq = freq, rw_years = rw_years)
+  nn.apes <- find_errors(beginning, series.ts, "nn", freq = freq, rw_years = rw_years)
+  comb.apes <- find_errors(beginning, series.ts, "combined", freq = freq, rw_years = rw_years)
   
   m <- matrix(c(snaive.apes, ma5.apes, ma7.apes, ma9.apes, ma12.apes, stl.apes, ets.apes, 
                 tbats.apes, stlf.apes, arimax.apes, dynreg.apes, nn.apes, comb.apes),
@@ -402,9 +402,9 @@ select_model <- function(beginning, series.ts, freq){
   return(chosen.model)
 }
 
-chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly"){
+chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly", rw_years){
   if(freq == "monthly"){  # Monthly forecast
-    train <- ts(tail(series.ts, 36), start = decimal_date(head(tail(monthly$date, 36), 1)), frequency = 12)  # 3 year window
+    train <- ts(tail(series.ts, (rw_years * 12)), start = decimal_date(head(tail(monthly$date, (rw_years * 12)), 1)), frequency = 12)  # 3 year window
     # xregs for arimax
     nrow <- length(train)
     onehotyear <- matrix(c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -424,13 +424,13 @@ chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly"){
     
     month.m <- matrix(, nrow = nrow, ncol = 11)
     for(j in 1:nrow){
-      month.m[j,] <- onehotyear[month(head(tail(monthly$date, 36), 1) + months(j - 1)), ]
+      month.m[j,] <- onehotyear[month(head(tail(monthly$date, (rw_years * 12)), 1) + months(j - 1)), ]
     }
     horizon.m <- matrix(, nrow = 6, ncol = 11)
     k <- 0
     for(j in nrow:(nrow + 5)){
       k <- k + 1
-      horizon.m[k,] <- onehotyear[month(head(tail(monthly$date, 36), 1) + months(j)), ]
+      horizon.m[k,] <- onehotyear[month(head(tail(monthly$date, (rw_years * 12)), 1) + months(j)), ]
     }
     # Fit model
     if(chosen.model == 1){fit <- snaive(train)}
@@ -552,7 +552,7 @@ chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly"){
     }
   }
   if(freq == "weekly"){  # Weekly forecast
-    train <- ts(tail(series.ts, 156), start = decimal_date(head(tail(monthly$date, 156), 1)), frequency = 52)  # Three year window
+    train <- ts(tail(series.ts, (rw_years * 52)), start = decimal_date(head(tail(monthly$date, (rw_years * 52)), 1)), frequency = 52)  # Three year window
     # xregs for arimax
     nrow <- length(train)
     onehotyear <- matrix(c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -572,13 +572,13 @@ chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly"){
     
     month.m <- matrix(, nrow = nrow, ncol = 11)
     for(j in 1:nrow){
-      month.m[j,] <- onehotyear[month(head(tail(monthly$date, 156), 1) + weeks(j - 1)), ]
+      month.m[j,] <- onehotyear[month(head(tail(monthly$date, (rw_years * 52)), 1) + weeks(j - 1)), ]
     }
     horizon.m <- matrix(, nrow = 4, ncol = 11)
     k <- 0
     for(j in nrow:(nrow + 3)){
       k <- k + 1
-      horizon.m[k,] <- onehotyear[month(head(tail(monthly$date, 156), 1) + weeks(j)), ]
+      horizon.m[k,] <- onehotyear[month(head(tail(monthly$date, (rw_years * 52)), 1) + weeks(j)), ]
     }
     # Fit model
     if(chosen.model == 1){fit <- snaive(train)}
@@ -705,9 +705,9 @@ chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly"){
 # but keeps everything else intact.
 # Forecasted periods are changed from 6 to 23 (to accommodate two whole years). The actual required length is determined in
 # forecast_script.Rmd
-chosen_forecast_extended <- function(chosen.model, series.ts, monthly, freq = "monthly"){
+chosen_forecast_extended <- function(chosen.model, series.ts, monthly, freq = "monthly", rw_years){
   if(freq == "monthly"){  # Monthly forecast
-    train <- ts(tail(series.ts, 36), start = decimal_date(head(tail(monthly$date, 36), 1)), frequency = 12)  # 3 year window
+    train <- ts(tail(series.ts, (rw_years * 12)), start = decimal_date(head(tail(monthly$date, (rw_years * 12)), 1)), frequency = 12)  # 3 year window
     # xregs for arimax
     nrow <- length(train)
     onehotyear <- matrix(c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -727,13 +727,13 @@ chosen_forecast_extended <- function(chosen.model, series.ts, monthly, freq = "m
     
     month.m <- matrix(, nrow = nrow, ncol = 11)
     for(j in 1:length(train)){
-      month.m[j,] <- onehotyear[month(head(tail(monthly$date, 36), 1) + months(j - 1)), ]
+      month.m[j,] <- onehotyear[month(head(tail(monthly$date, (rw_years * 12)), 1) + months(j - 1)), ]
     }
     horizon.m <- matrix(, nrow = 23, ncol = 11)
     k <- 0
     for(j in length(train):(length(train) + 22)){
       k <- k + 1
-      horizon.m[k,] <- onehotyear[month(head(tail(monthly$date, 36), 1) + months(j)), ]
+      horizon.m[k,] <- onehotyear[month(head(tail(monthly$date, (rw_years * 12)), 1) + months(j)), ]
     }
     # Fit model
     if(chosen.model == 1){fit <- snaive(train)}
@@ -896,7 +896,7 @@ draw_forecast <- function(forecast_dataframe, freq, history, type, modelname, pa
   
 }
 
-save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_adj){
+save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_adj, rw_years){
   # We will need these stored
   modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS", "STLF", "ARIMAX", "DYNREG", "NN", "COMBINED")
   
@@ -965,7 +965,7 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
           scaleback <- as.numeric(bizdays(ts(seq(1), start = decimal_date(cutreal$date[length(cutreal$date)]), frequency = 12), FinCenter = "Zurich")) # Scaler for saving
           
           # Forecast
-          chosen.model <- select_model(beginning, series.ts, freq = "monthly") # Choose model
+          chosen.model <- select_model(beginning, series.ts, freq = "monthly", rw_years) # Choose model
           mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "monthly") # Output a forecast
           missing.fcast <- data.frame(time = tail(cutreal$date, 1), 
                                       model = modelnames[chosen.model], 
@@ -986,7 +986,7 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
           series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52) # Transform into a ts object
           
           # Forecast
-          chosen.model <- select_model(beginning, series.ts, freq = "weekly") # Choose model
+          chosen.model <- select_model(beginning, series.ts, freq = "weekly", rw_years) # Choose model
           mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly") # Output a forecast
           missing.fcast <- data.frame(time = tail(cutreal$startdate, 1), 
                                       model = modelnames[chosen.model], 
@@ -1033,7 +1033,7 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
         scaleback <- as.numeric(bizdays(ts(seq(1), start = decimal_date(cutreal$date[length(cutreal$date)]), frequency = 12), FinCenter = "Zurich")) # Scaler for saving
         
         # Forecast
-        chosen.model <- select_model(beginning, series.ts, freq = "monthly") # Choose model
+        chosen.model <- select_model(beginning, series.ts, freq = "monthly", rw_years) # Choose model
         mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "monthly") # Output a forecast
         missing.fcast <- data.frame(time = tail(cutreal$date, 1), 
                                     model = modelnames[chosen.model], 
@@ -1066,7 +1066,7 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
         series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
         
         # Forecast
-        chosen.model <- select_model(wbeginning, series.ts, "weekly") # Choose model
+        chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years) # Choose model
         mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly") # Output a forecast
         missing.fcast <- data.frame(time = tail(cutreal$startdate, 1), 
                                     model = modelnames[chosen.model], 
