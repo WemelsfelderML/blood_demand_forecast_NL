@@ -36,8 +36,6 @@ library(data.table)
 library(R.utils)
 library(DT)
 source("pffunctions.R")
-
-setwd(ROOTDIR)
 ```
 
 ```{r read_files, include = FALSE}
@@ -46,7 +44,7 @@ d <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
 d <- d[d$V2 != "",]
 
 # Set rolling window size in years
-rw_years <- 3
+rw_years <- 6
 ```
 
 ```{r modify_dataframe, include = FALSE}
@@ -120,7 +118,7 @@ all.red <- merge(x = data.frame(date = all.dates),
 # Replace with zeroes
 all.red[is.na(all.red)] <- 0
 # Cut to time after 2014
-all.red <- all.red[all.red$date >= as.Date("2014-01-01"), ]
+# all.red <- all.red[all.red$date >= as.Date("2014-01-01"), ]
 
 ###           ###
 #  RED RETURNS  #
@@ -134,7 +132,7 @@ all.red.retrn <- merge(x = data.frame(date = all.dates),
 # Replace with zeroes
 all.red.retrn[is.na(all.red.retrn)] <- 0
 # Cut to time after 2014
-all.red.retrn <- all.red.retrn[all.red.retrn$date >= as.Date("2014-01-01"), ]
+# all.red.retrn <- all.red.retrn[all.red.retrn$date >= as.Date("2014-01-01"), ]
 
 
 # Extracting types
@@ -159,7 +157,7 @@ all.plat <- merge(x = data.frame(date = all.dates),
 # Replace with zeroes
 all.plat[is.na(all.plat)] <- 0
 # Cut to time after 2014
-all.plat <- all.plat[all.plat$date >= as.Date("2014-01-01"), ]
+# all.plat <- all.plat[all.plat$date >= as.Date("2014-01-01"), ]
 
 ###           ###
 # PLAT RETURNS  #
@@ -172,7 +170,7 @@ all.plat.retrn <- merge(x = data.frame(date = all.dates),
 # Replace with zeroes
 all.plat.retrn[is.na(all.plat.retrn)] <- 0
 # Cut to time after 2014
-all.plat.retrn <- all.plat.retrn[all.plat.retrn$date >= as.Date("2014-01-01"), ]
+# all.plat.retrn <- all.plat.retrn[all.plat.retrn$date >= as.Date("2014-01-01"), ]
 ```
 
 ```{r datasets_monthly, include = FALSE, warning = FALSE}
@@ -193,10 +191,10 @@ plat.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.plat, FUN =
 plat.retrn.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.plat.retrn, FUN = sum)
 
 # Dates
-months <- seq(from = as.Date("2014-01-01"), to = max(distr$date), by = "month")
+months <- seq(from = as.Date("2009-01-01"), to = max(distr$date), by = "month")
 
 # Adjustment series
-adj <- as.numeric(bizdays(ts(months, start = decimal_date(as.Date("2014-01-01")), frequency = 12), FinCenter = "Zurich"))
+adj <- as.numeric(bizdays(ts(months, start = decimal_date(as.Date("2009-01-01")), frequency = 12), FinCenter = "Zurich"))
 # scaler <- as.numeric(bizdays(ts(1, start = decimal_date(months[length(months)]), frequency = 12), FinCenter = "Zurich")) This was written to scale a singular forecasted month back to real values, for saving-to-file purposes
 
 reverse_adj <- as.numeric(bizdays(ts(seq(23), start = decimal_date(months[length(months)]), frequency = 12), FinCenter = "Zurich")) # This is the old implementation that used to be fed into the forecasting function. We'll now repurpose it so it can be used both for tabling and plotting.
@@ -204,7 +202,7 @@ reverse_adj <- as.numeric(bizdays(ts(seq(23), start = decimal_date(months[length
 # Create a master frame
 monthly <- data.frame(date = months,
                       red = red.monthly$pcs/adj,
-                      # red.ret = red.retrn.monthly$pcs/adj,
+                      red.ret = red.retrn.monthly$pcs/adj,
                       red.sales = red.monthly$pcs/adj - red.retrn.monthly$pcs/adj,
                       Ominus = Ominus.monthly$pcs/adj,
                       Oplus = Oplus.monthly$pcs/adj,

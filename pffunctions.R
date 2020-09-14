@@ -21,7 +21,7 @@ extract_type <- function(red.distr, type){
   # Replace with zeroes
   typed.distr[is.na(typed.distr)] <- 0
   # Cut to time after 2014
-  typed.distr <- typed.distr[typed.distr$date >= as.Date("2014-01-01"), ]
+  # typed.distr <- typed.distr[typed.distr$date >= as.Date("2014-01-01"), ]
   
   return(typed.distr)
 }
@@ -60,7 +60,7 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
     for(i in seq(length(series.ts) - (rw_years * 12 + 1))){
       # Define training and testing set as ROLLING WINDOW
       
-      train <- ts(series.ts[i:(rw_years * 12 - 1 + i)], start = decimal_date(beginning) + months(i - 1), frequency = 12)
+      train <- ts(series.ts[i:((rw_years * 12) - 1 + i)], start = decimal_date(beginning) + months(i - 1), frequency = 12)
       test <- ts(series.ts[(rw_years * 12 + i)], start = decimal_date(beginning) + months(rw_years * 12 + i), frequency = 12)
       
       # xregs for arimax
