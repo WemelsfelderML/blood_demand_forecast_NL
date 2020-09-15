@@ -4,13 +4,10 @@ library(stringr)
 
 # settings
 ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/" # Your directory
-HISTORYDIR <- paste0(ROOTDIR, "histories/") # monthly
-MONTHLYDIR <- paste0(ROOTDIR, "histories/monthly_") # monthly
-WEEKLYDIR <- paste0(ROOTDIR, "histories/weekly_") # weekly
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
-method_avg_best <- "best"
+method_avg_best <- "avg"
 
 # list of all considered rolling window sizes (years)
 rolling_windows <- c(3:9)
@@ -23,7 +20,7 @@ colors = brewer.pal(length(groups), name="Paired")
 # reshape error data frames and put them together in a hash set with rolling window size as key
 h <- hash()
 for (rw in rolling_windows) {
-  df1 <- read.delim(file = paste0(ROOTDIR, "errors/m_errors_rwy", toString(rw), "_df.txt"), header = FALSE, sep = ";")
+  df1 <- read.delim(file = paste0(ROOTDIR, "rw_testing/m_errors_rwy", toString(rw), "_df.txt"), header = FALSE, sep = ";")
   df <- data.frame(row.names = modelnames)
   
   i <- 1
