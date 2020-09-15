@@ -375,20 +375,30 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
 }
 
 select_model <- function(beginning, series.ts, freq, rw_years){
-  # Standard
   snaive.apes <- find_errors(beginning, series.ts, "snaive", freq = freq, rw_years = rw_years)
   ma5.apes <- find_errors(beginning, series.ts, "5-MA", freq = freq, rw_years = rw_years)
   ma7.apes <- find_errors(beginning, series.ts, "7-MA", freq = freq, rw_years = rw_years)
   ma9.apes <- find_errors(beginning, series.ts, "9-MA", freq = freq, rw_years = rw_years)
-  ma12.apes <- find_errors(beginning, series.ts, "12-MA", freq = freq, rw_years = rw_years)
-  stl.apes <- find_errors(beginning, series.ts, "stl", freq = freq, rw_years = rw_years)
+  ma12.apes <- c(900:910)
+  stl.apes <- c(900:910)
   ets.apes <- find_errors(beginning, series.ts, "ets", freq = freq, rw_years = rw_years)
   tbats.apes <- find_errors(beginning, series.ts, "tbats", freq = freq, rw_years = rw_years)
-  stlf.apes <- find_errors(beginning, series.ts, "stlf", freq = freq, rw_years = rw_years)
-  arimax.apes <- find_errors(beginning, series.ts, "arimax", freq = freq, rw_years = rw_years)
-  dynreg.apes <- find_errors(beginning, series.ts, "dynreg", freq = freq, rw_years = rw_years)
+  stlf.apes <- c(900:910)
+  arimax.apes <- c(900:910)
+  dynreg.apes <- c(900:910)
   nn.apes <- find_errors(beginning, series.ts, "nn", freq = freq, rw_years = rw_years)
-  comb.apes <- find_errors(beginning, series.ts, "combined", freq = freq, rw_years = rw_years)
+  comb.apes <- c(900:910)
+  
+  if (rw_years >= 2) {
+    ma12.apes <- find_errors(beginning, series.ts, "12-MA", freq = freq, rw_years = rw_years)
+    arimax.apes <- find_errors(beginning, series.ts, "arimax", freq = freq, rw_years = rw_years)
+    dynreg.apes <- find_errors(beginning, series.ts, "dynreg", freq = freq, rw_years = rw_years)
+  }
+  if (rw_years >= 3){
+    stl.apes <- find_errors(beginning, series.ts, "stl", freq = freq, rw_years = rw_years)
+    stlf.apes <- find_errors(beginning, series.ts, "stlf", freq = freq, rw_years = rw_years)
+    comb.apes <- find_errors(beginning, series.ts, "combined", freq = freq, rw_years = rw_years)
+  } 
   
   m <- matrix(c(snaive.apes, ma5.apes, ma7.apes, ma9.apes, ma12.apes, stl.apes, ets.apes, 
                 tbats.apes, stlf.apes, arimax.apes, dynreg.apes, nn.apes, comb.apes),
@@ -396,7 +406,6 @@ select_model <- function(beginning, series.ts, freq, rw_years){
               byrow = FALSE)
   
   mdf <- as.data.frame(m)
-  
   chosen.model <- which.min(colMeans(mdf))[[1]]
   
   return(chosen.model)
