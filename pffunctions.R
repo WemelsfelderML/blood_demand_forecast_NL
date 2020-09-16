@@ -209,9 +209,9 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
       apes <- c(apes, ape)
     }
     
-    cat("method: ", method, "\n", file=paste0("rw_testing/m_errors_rwy", rw_years, ".txt"), append=TRUE)
-    cat("all errors: ", apes, "\n", file=paste0("rw_testing/m_errors_rwy", rw_years, ".txt"), append=TRUE)
-    cat("mean error: ", mean(apes), "\n\n", file=paste0("rw_testing/m_errors_rwy", rw_years, ".txt"), append=TRUE)
+    cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+    cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+    
   } 
   if(freq == "weekly"){
     for(i in seq(length(series.ts) - (rw_years * 52 + 1))){
@@ -366,9 +366,8 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
       apes <- c(apes, ape)
     }
     
-    cat("method: ", method, "\n", file=paste0("rw_testing/w_errors_rwy", rw_years, ".txt"), append=TRUE)
-    cat("all errors: ", apes, "\n", file=paste0("rw_testing/w_errors_rwy", rw_years, ".txt"), append=TRUE)
-    cat("mean error: ", mean(apes), "\n\n", file=paste0("rw_testing/w_errors_rwy", rw_years, ".txt"), append=TRUE)
+    cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+    cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
   }
   
   return(apes)

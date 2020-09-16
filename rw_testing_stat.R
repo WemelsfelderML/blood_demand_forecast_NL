@@ -22,7 +22,7 @@ colors = brewer.pal(length(groups), name="Paired")
 # and put them together in a hash set with rolling window size as key
 all_errors <- data.frame(matrix(nrow=length(used)*11, ncol=0))
 for (rw in rolling_windows) {
-  df <- read.delim(file = paste0(ROOTDIR, "rw_testing/m_errors_rwy", toString(rw), "_long.txt"), header = FALSE, sep = ";")
+  df <- read.delim(file = paste0(ROOTDIR, "rw_testing/m_errors_rwy", toString(rw), "_all.txt"), header = FALSE, sep = ";")
   df <- df[c(2:(length(used)+1)),]
   ls <- list()
   for (r in rownames(df)){

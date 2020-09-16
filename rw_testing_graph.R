@@ -20,7 +20,7 @@ colors = brewer.pal(length(groups), name="Paired")
 # reshape error data frames and put them together in a hash set with rolling window size as key
 h <- hash()
 for (rw in rolling_windows) {
-  df1 <- read.delim(file = paste0(ROOTDIR, "rw_testing/m_errors_rwy", toString(rw), "_df.txt"), header = FALSE, sep = ";")
+  df1 <- read.delim(file = paste0(ROOTDIR, "rw_testing/m_errors_rwy", toString(rw), "_mean.txt"), header = FALSE, sep = ";")
   
   # number of methods tested for each blood group
   m <- nrow(df1)/10 - 1
