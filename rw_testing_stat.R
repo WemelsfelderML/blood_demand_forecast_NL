@@ -13,7 +13,7 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 # "best" for taking only result of best performing method
 method_avg_best <- "best"
 period <- "m"               # m for monthly, w for weakly
-group <- "RED"              # "RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLAT"
+group <- "RED"              # "RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLATELETS"
 
 # list of all considered rolling window sizes (years)
 rolling_windows <- c(3:9)
@@ -25,7 +25,7 @@ colors = brewer.pal(length(groups), name="Paired")
 
 # read errors of first rolling window to determine the set of used models
 df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rolling_windows[1]), "_all.txt"), header = FALSE, sep = ";")
-index_start <- which(grepl(group, toupper(df$V1))) + 1
+index_start <- match(group, toupper(df$V1)) + 1
 index_stop <- index_start + nrow(df)/10 - 2
 used_models <- df[c(index_start:index_stop),]$V1
 
@@ -39,7 +39,7 @@ if (period == "m"){
 # fill data frame containing prediction errors for all months/weeks for all rolling window sizes
 for (rw in rolling_windows) {
   df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_all.txt"), header = FALSE, sep = ";")
-  index_start <- which(grepl(group, toupper(df$V1))) + 1
+  index_start <- match(group, toupper(df$V1)) + 1
   index_stop <- index_start + nrow(df)/10 - 2
   df <- df[c(index_start:index_stop),]
   df <- df[df$V1 %in% used_models,]
@@ -65,14 +65,14 @@ for (i in rolling_windows[-length(rolling_windows)]){
 # execute paired t-test on all combinations of rolling window size,
 # and write output to rw_testing directory
 
-cat(paste0("DIFFERENT MEAN", "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
+cat(paste0("Ha: MEANS ARE DIFFERENT", "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
 for (i in c(1:length(rw_comb))){
   cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
-  cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE)[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
+  cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "two.sided")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
 }
 cat("\n", file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
 
-cat(paste0("FIRST MEAN < SECOND MEAN", "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
+cat(paste0("Ha: FIRST MEAN > SECOND MEAN", "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
 for (i in c(1:length(rw_comb))){
   cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
   cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "greater")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests_", group, ".txt"), append=TRUE)
