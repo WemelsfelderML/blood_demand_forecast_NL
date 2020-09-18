@@ -2,12 +2,15 @@ library(hash)
 library(RColorBrewer)
 library(stringr)
 
-# settings
-ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/" # Your directory
+# SETTINGS
+
+# working directory
+ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
 method_avg_best <- "best"
+period <- "m"               # m for monthly, w for weakly
 
 # list of all considered rolling window sizes (years)
 rolling_windows <- c(1:9)
@@ -17,10 +20,12 @@ modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS"
 groups <- c("RED", "Ominus", "Oplus", "Aminus", "Aplus", "Bminus", "Bplus", "ABminus", "ABplus", "PLAT")
 colors = brewer.pal(length(groups), name="Paired")
 
+# PRE-PROCESSING
+
 # reshape error data frames and put them together in a hash set with rolling window size as key
 h <- hash()
 for (rw in rolling_windows) {
-  df1 <- read.delim(file = paste0(ROOTDIR, "rw_testing/m_errors_rwy", toString(rw), "_mean.txt"), header = FALSE, sep = ";")
+  df1 <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_mean.txt"), header = FALSE, sep = ";")
   
   # number of methods tested for each blood group
   m <- nrow(df1)/10 - 1
@@ -41,8 +46,9 @@ for (rw in rolling_windows) {
   h[toString(rw)] <- df
 }
 
+# PLOTTING
 
-# make a boxplot of average errors of all methods
+# boxplot of average 12-month errors of all methods, for each blood group separately
 if (method_avg_best == "avg"){
   for (group in groups){
     df_plot <- data.frame(matrix(nrow=13, ncol=0))
@@ -54,7 +60,7 @@ if (method_avg_best == "avg"){
   }
 } 
 
-# make a line plot of errors for best method for each blood group
+# line plot of 12-month errors resulting from best method for each blood group
 if (method_avg_best == "best"){
   df_plot <- data.frame(matrix(nrow=0, ncol=length(rolling_windows)))
   
@@ -63,6 +69,7 @@ if (method_avg_best == "best"){
       df_plot[group, rw] <- min(h[[toString(rw)]][,group])
     }
   }
+  df_plot <- df_plot[,rolling_windows]
   colnames(df_plot) <- rolling_windows
   
   plot(1, type = "n", main = paste0("Errors for different rolling window sizes"), xlab = "rolling window (years)", ylab = "errors red blood cells", xlim = c(min(rolling_windows), max(rolling_windows)), ylim = c(0,max(df_plot)))
