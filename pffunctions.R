@@ -42,7 +42,7 @@ aggregate_weekly <- function(series){
     weeklist[[k]] <- j
     datelist[[k]] <- series$date[i]
   }
-  weekly <- data.frame(week = unlist(weeklist), startdate = as.Date.numeric(unlist(datelist), origin = "1970-01-01"), pcs = unlist(pcslist))
+  weekly <- data.frame(week = unlist(weeklist), date = as.Date.numeric(unlist(datelist), origin = "1970-01-01"), pcs = unlist(pcslist))
   return(weekly)
 }
 
@@ -56,11 +56,11 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
   # return:: A vector of errors.
   
   apes <- c()
-  if(freq == "monthly"){
-    for(i in seq(length(series.ts) - (rw_years * 12 + 1))){
-      # Define training and testing set as ROLLING WINDOW
+  if(freq == "monthly"){	
+    for(i in seq(length(series.ts) - (rw_years * 12 + 1))){	
+      # Define training and testing set as ROLLING WINDOW	
       
-      train <- ts(series.ts[i:((rw_years * 12) - 1 + i)], start = decimal_date(beginning) + months(i - 1), frequency = 12)
+      train <- ts(series.ts[i:((rw_years * 12) - 1 + i)], start = decimal_date(beginning) + months(i - 1), frequency = 12)	
       test <- ts(series.ts[(rw_years * 12 + i)], start = decimal_date(beginning) + months(rw_years * 12 + i), frequency = 12)
       
       # xregs for arimax
@@ -208,16 +208,15 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
       # Save errors
       apes <- c(apes, ape)
     }
+    cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)	
+    cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)	
     
-    cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-    cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-    
-  } 
-  if(freq == "weekly"){
-    for(i in seq(length(series.ts) - (rw_years * 52 + 1))){
-      # Define training and testing set as ROLLING WINDOW
+  } 	
+  if(freq == "weekly"){	
+    for(i in seq(length(series.ts) - (rw_years * 52 + 1))){	
+      # Define training and testing set as ROLLING WINDOW	
       
-      train <- ts(series.ts[i:(rw_years * 52 - 1 + i)], start = decimal_date(beginning) + weeks(i - 1), frequency = 52)
+      train <- ts(series.ts[i:(rw_years * 52 - 1 + i)], start = decimal_date(beginning) + weeks(i - 1), frequency = 52)	
       test <- ts(series.ts[(rw_years * 52 + i)], start = decimal_date(beginning) + weeks(rw_years * 52 + i), frequency = 52)
       
       # xregs for arimax
@@ -365,38 +364,37 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
       # Save errors
       apes <- c(apes, ape)
     }
-    
-    cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-    cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-  }
+    cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)	
+    cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)	
+  }	
   
-  return(apes)
-}
+  return(apes)	
+}	
 
-select_model <- function(beginning, series.ts, freq, rw_years){
-  snaive.apes <- find_errors(beginning, series.ts, "snaive", freq = freq, rw_years = rw_years)
-  ma5.apes <- find_errors(beginning, series.ts, "5-MA", freq = freq, rw_years = rw_years)
-  ma7.apes <- find_errors(beginning, series.ts, "7-MA", freq = freq, rw_years = rw_years)
-  ma9.apes <- find_errors(beginning, series.ts, "9-MA", freq = freq, rw_years = rw_years)
-  ma12.apes <- c(900:910)
-  stl.apes <- c(900:910)
-  ets.apes <- find_errors(beginning, series.ts, "ets", freq = freq, rw_years = rw_years)
-  tbats.apes <- find_errors(beginning, series.ts, "tbats", freq = freq, rw_years = rw_years)
-  stlf.apes <- c(900:910)
-  arimax.apes <- c(900:910)
-  dynreg.apes <- c(900:910)
-  nn.apes <- find_errors(beginning, series.ts, "nn", freq = freq, rw_years = rw_years)
-  comb.apes <- c(900:910)
+select_model <- function(beginning, series.ts, freq, rw_years){	
+  snaive.apes <- find_errors(beginning, series.ts, "snaive", freq = freq, rw_years = rw_years)	
+  ma5.apes <- find_errors(beginning, series.ts, "5-MA", freq = freq, rw_years = rw_years)	
+  ma7.apes <- find_errors(beginning, series.ts, "7-MA", freq = freq, rw_years = rw_years)	
+  ma9.apes <- find_errors(beginning, series.ts, "9-MA", freq = freq, rw_years = rw_years)	
+  ma12.apes <- c(9000:(9000+length(snaive.apes)-1))	
+  stl.apes <- c(9000:(9000+length(snaive.apes)-1))	
+  ets.apes <- find_errors(beginning, series.ts, "ets", freq = freq, rw_years = rw_years)	
+  tbats.apes <- find_errors(beginning, series.ts, "tbats", freq = freq, rw_years = rw_years)	
+  stlf.apes <- c(9000:(9000+length(snaive.apes)-1))	
+  arimax.apes <- c(9000:(9000+length(snaive.apes)-1))	
+  dynreg.apes <- c(9000:(9000+length(snaive.apes)-1))	
+  nn.apes <- find_errors(beginning, series.ts, "nn", freq = freq, rw_years = rw_years)	
+  comb.apes <- c(9000:(9000+length(snaive.apes)-1))	
   
-  if (rw_years >= 2) {
-    ma12.apes <- find_errors(beginning, series.ts, "12-MA", freq = freq, rw_years = rw_years)
-    arimax.apes <- find_errors(beginning, series.ts, "arimax", freq = freq, rw_years = rw_years)
-    dynreg.apes <- find_errors(beginning, series.ts, "dynreg", freq = freq, rw_years = rw_years)
-  }
-  if (rw_years >= 3){
-    stl.apes <- find_errors(beginning, series.ts, "stl", freq = freq, rw_years = rw_years)
-    stlf.apes <- find_errors(beginning, series.ts, "stlf", freq = freq, rw_years = rw_years)
-    comb.apes <- find_errors(beginning, series.ts, "combined", freq = freq, rw_years = rw_years)
+  if (rw_years >= 2) {	
+    ma12.apes <- find_errors(beginning, series.ts, "12-MA", freq = freq, rw_years = rw_years)	
+    arimax.apes <- find_errors(beginning, series.ts, "arimax", freq = freq, rw_years = rw_years)	
+    dynreg.apes <- find_errors(beginning, series.ts, "dynreg", freq = freq, rw_years = rw_years)	
+  }	
+  if (rw_years >= 3){	
+    stl.apes <- find_errors(beginning, series.ts, "stl", freq = freq, rw_years = rw_years)	
+    stlf.apes <- find_errors(beginning, series.ts, "stlf", freq = freq, rw_years = rw_years)	
+    comb.apes <- find_errors(beginning, series.ts, "combined", freq = freq, rw_years = rw_years)	
   } 
   
   m <- matrix(c(snaive.apes, ma5.apes, ma7.apes, ma9.apes, ma12.apes, stl.apes, ets.apes, 
@@ -405,6 +403,7 @@ select_model <- function(beginning, series.ts, freq, rw_years){
               byrow = FALSE)
   
   mdf <- as.data.frame(m)
+  
   chosen.model <- which.min(colMeans(mdf))[[1]]
   
   return(chosen.model)
@@ -675,7 +674,12 @@ chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly", 
       
       # NNETAR
       nn.fit <- nnetar(train)
-      nn.fcast <- forecast(nn.fit, h = 4)
+      nn.fcast <- forecast(nn.fit, h = 4)$mean
+      
+      print(matrix(c(snaive.fcast, ma5.fcast, ma7.fcast, ma9.fcast, ma12.fcast, stl.fcast,	
+                     ets.fcast, tbats.fcast, stlf.fcast, arimax.fcast, dynreg.fcast, nn.fcast), 	
+                   ncol = 4, 	
+                   byrow = TRUE))
       
       forecasts <- colMeans(matrix(c(snaive.fcast, ma5.fcast, ma7.fcast, ma9.fcast, ma12.fcast, stl.fcast,
                                      ets.fcast, tbats.fcast, stlf.fcast, arimax.fcast, dynreg.fcast, nn.fcast), 
@@ -713,8 +717,8 @@ chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly", 
 # but keeps everything else intact.
 # Forecasted periods are changed from 6 to 23 (to accommodate two whole years). The actual required length is determined in
 # forecast_script.Rmd
-chosen_forecast_extended <- function(chosen.model, series.ts, monthly, freq = "monthly", rw_years){
-  if(freq == "monthly"){  # Monthly forecast
+chosen_forecast_extended <- function(chosen.model, series.ts, monthly, freq = "monthly", rw_years){	
+  if(freq == "monthly"){  # Monthly forecast	
     train <- ts(tail(series.ts, (rw_years * 12)), start = decimal_date(head(tail(monthly$date, (rw_years * 12)), 1)), frequency = 12)  # 3 year window
     # xregs for arimax
     nrow <- length(train)
@@ -830,7 +834,7 @@ chosen_forecast_extended <- function(chosen.model, series.ts, monthly, freq = "m
       
       # NNETAR
       nn.fit <- nnetar(train)
-      nn.fcast <- forecast(nn.fit, h = 23)
+      nn.fcast <- forecast(nn.fit, h = 23)$mean
       
       forecasts <- colMeans(matrix(c(snaive.fcast, ma5.fcast, ma7.fcast, ma9.fcast, ma12.fcast, stl.fcast,
                                      ets.fcast, tbats.fcast, stlf.fcast, arimax.fcast, dynreg.fcast, nn.fcast), 
@@ -885,12 +889,12 @@ draw_forecast <- function(forecast_dataframe, freq, history, type, modelname, pa
       theme(legend.position = "bottom", legend.margin = margin(t = -20, b = 0)) + 
       scale_colour_manual(values = c(palette[["colData"]], palette[["colPred"]]), labels = c("Data", "Forecast"))
   } else {
-    ggplot(data = forecast_dataframe, aes(x = seq.Date(from = tail(history$startdate, 1), to = tail(history$startdate, 1) + weeks(3), by = "week"), y = fcast)) + 
-      geom_segment(x = tail(history$startdate, 2)[1], y = tail(history[,type], 2)[1], xend = tail(history$startdate, 1), yend = head(forecast_dataframe$fcast, 1), color = "#D55E00", linetype = "dashed", alpha = palette[["alphaSeg"]]) +
+    ggplot(data = forecast_dataframe, aes(x = seq.Date(from = tail(history$date, 1), to = tail(history$date, 1) + weeks(3), by = "week"), y = fcast)) + 
+      geom_segment(x = tail(history$date, 2)[1], y = tail(history[,type], 2)[1], xend = tail(history$date, 1), yend = head(forecast_dataframe$fcast, 1), color = "#D55E00", linetype = "dashed", alpha = palette[["alphaSeg"]]) +
       geom_ribbon(data = forecast_dataframe, aes(ymin = lower95, ymax = upper95), alpha = palette[["alpha95"]], fill = palette[["fill95"]]) + 
       geom_ribbon(data = forecast_dataframe, aes(ymin = lower80, ymax = upper80), alpha = palette[["alpha80"]], fill = palette[["fill80"]]) +
       geom_line(aes(colour = "Forecast"), size = 0.8) +
-      geom_line(data = tail(head(history, -1), 16), aes(x = startdate, y = get(type), colour = palette[["colData"]]), size = 0.8, alpha = palette[["alphaSeg"]] ) +
+      geom_line(data = tail(head(history, -1), 16), aes(x = date, y = get(type), colour = palette[["colData"]]), size = 0.8, alpha = palette[["alphaSeg"]] ) +
       
       labs(title = paste0("4 week forecast: ", type),
            subtitle = paste0("Best performing model of the previous year: ", modelname),
@@ -926,7 +930,7 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
                             lower80 = fdf$lower80[1] * reverse_adj[1],
                             lower95 = fdf$lower95[1] * reverse_adj[1], stringsAsFactors = F) 
   } else{
-    save.this <- data.frame(time = tail(history$startdate, 1), 
+    save.this <- data.frame(time = tail(history$date, 1), 
                             model = modelname, 
                             forecast = fdf$fcast[1],
                             upper80 = fdf$upper80[1],
@@ -988,15 +992,15 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
         }
       } else{
         for(mdate in missing){
-          cutreal<- history[history$startdate <= mdate, ] # Cut real history at the missing date
-          wbeginning <- head(tail(cutreal$startdate, 209), 1) # Define beginning of 4 year window 
+          cutreal<- history[history$date <= mdate, ] # Cut real history at the missing date
+          wbeginning <- head(tail(cutreal$date, 209), 1) # Define beginning of 4 year window 
           segment <- head(tail(cutreal[, type], 209), 208) # Define 4 year window
           series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52) # Transform into a ts object
           
           # Forecast
           chosen.model <- select_model(beginning, series.ts, freq = "weekly", rw_years) # Choose model
           mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly") # Output a forecast
-          missing.fcast <- data.frame(time = tail(cutreal$startdate, 1), 
+          missing.fcast <- data.frame(time = tail(cutreal$date, 1), 
                                       model = modelnames[chosen.model], 
                                       forecast = mcast$fcast[1],
                                       upper80 = mcast$upper80[1],
@@ -1069,14 +1073,14 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
       
       for(i in seq(0, 23)){
         cutreal <- head(history, -(24-i)) # Erase (24-x) weeks from real history
-        wbeginning <- head(tail(cutreal$startdate, 209), 1) # Define beginning of 4 year window 
+        wbeginning <- head(tail(cutreal$date, 209), 1) # Define beginning of 4 year window 
         segment <- head(tail(cutreal[, type], 209), 208)
         series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
         
         # Forecast
         chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years) # Choose model
         mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly") # Output a forecast
-        missing.fcast <- data.frame(time = tail(cutreal$startdate, 1), 
+        missing.fcast <- data.frame(time = tail(cutreal$date, 1), 
                                     model = modelnames[chosen.model], 
                                     forecast = mcast$fcast[1],
                                     upper80 = mcast$upper80[1],
@@ -1127,7 +1131,7 @@ draw_history <- function(forecasthistory, history, freq = "monthly", type, palet
     
     p <- ggplot(data = fcast.history, aes(x = as.Date(time), y = forecast, colour = "Forecast"), label = model) +
       geom_line(aes(colour = "Forecast"), size = 0.9, alpha = palette[["alphaSeg"]]) +
-      geom_line(data = head(history, -1), aes(x = startdate, y = get(type), colour = "Data"), size = 0.8, alpha = palette[["alphaSeg"]]) +
+      geom_line(data = head(history, -1), aes(x = date, y = get(type), colour = "Data"), size = 0.8, alpha = palette[["alphaSeg"]]) +
       labs(title = "Weekly history (6 months)",
            subtitle = paste0("Mean error: ", round(mean(fcast.history$err), 2), "%"),
            x = "",
