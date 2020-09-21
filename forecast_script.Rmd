@@ -45,7 +45,7 @@ d <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
 d <- d[d$V2 != "",]
 
 # Set rolling window size in years
-rw_years <- 2
+rw_years <- 9
 ```
 
 ```{r modify_dataframe, include = FALSE}
@@ -672,8 +672,8 @@ Forecast for `r as.character(lubridate::month(today(), label = TRUE, abbr = FALS
 segment <- head(tail(monthly$plat, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
 series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
 
-cat("Platelets\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-cat("Platelets\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
 chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
 modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("Plat;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
