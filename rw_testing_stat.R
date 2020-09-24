@@ -12,7 +12,6 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
-method_avg_best <- "best"
 period <- "w"               # m for monthly, w for weakly
 groups <- c("RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLAT")
 

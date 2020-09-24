@@ -9,6 +9,8 @@ library(R.utils)
 library(DT)
 library(RColorBrewer)
 library(stringr)
+library(tsfeatures)
+library(nlme)
 
 # SETTINGS
 
@@ -94,6 +96,18 @@ plot(stl.w, main = "STL decomposition of all red blood cell data\nseasonality: w
 
 stl.d = stl(ts.d, "periodic")
 plot(stl.d, main = paste0("STL decomposition of all red blood cell data\nseasonality: day / week (", tail(daily$year, 1), ")"))
+
+years <- unique(monthly$year)
+for (y in head(years, length(years) - 2)){
+  m <- monthly[monthly$year %in% c(y:(y+2)),]
+  ts.m <- ts(data = m$red, frequency = 12, start = head(m$year, 1))
+  stl.m = stl(ts.m, "periodic")
+  plot(stl.m, main = "STL decomposition of all red blood cell data\nseasonality: month / year")
+  print(paste0(y, "-", y+3))
+  print(paste0("seasonal strength: ", round(stl_features(ts.m)["seasonal_strength"],3)))
+  print(paste0("trend: ", round(stl_features(ts.m)["trend"],5)))
+  print("")
+}
 
 
 #####################
