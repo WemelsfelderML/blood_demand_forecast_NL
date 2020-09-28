@@ -46,7 +46,7 @@ aggregate_weekly <- function(series){
   return(weekly)
 }
 
-find_errors <- function(beginning, series.ts, method = "none", freq = "monthly", rw_years = 3){
+find_errors <- function(beginning, series.ts, method = "none", freq = "monthly", rw_years){
   # Used in model selection
   # 
   # param:: beginning: Beginning of the series
@@ -60,8 +60,8 @@ find_errors <- function(beginning, series.ts, method = "none", freq = "monthly",
     for(i in seq(length(series.ts) - (rw_years * 12 + 1))){	
       # Define training and testing set as ROLLING WINDOW	
       
-      train <- ts(series.ts[i:((rw_years * 12) - 1 + i)], start = decimal_date(beginning) + months(i - 1), frequency = 12)	
-      test <- ts(series.ts[(rw_years * 12 + i)], start = decimal_date(beginning) + months(rw_years * 12 + i), frequency = 12)
+      train <- ts(series.ts[i:((rw_years * 12) - 1 + i)], frequency = 12)
+      test <- ts(series.ts[((rw_years * 12) + i)], frequency = 12)
       
       # xregs for arimax
       nrow <- length(train)
@@ -970,8 +970,8 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
       if(months){
         for(mdate in missing){
           cutreal<- history[history$date <= mdate, ] # Cut real history at the missing date
-          beginning <- head(tail(cutreal$date, 49), 1) # Define beginning of 4 year window 
-          segment <- head(tail(cutreal[, type], 49), 48) # Define 4 year window
+          beginning <- head(tail(cutreal$date, (((rw_years+1)*12) + 1)), 1) # Define beginning of 4 year window 
+          segment <- head(tail(cutreal[, type], (((rw_years+1)*12) + 1)), ((rw_years+1)*12)) # Define 4 year window
           series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12) # Transform into a ts object
           
           scaleback <- as.numeric(bizdays(ts(seq(1), start = decimal_date(cutreal$date[length(cutreal$date)]), frequency = 12), FinCenter = "Zurich")) # Scaler for saving
@@ -993,13 +993,13 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
       } else{
         for(mdate in missing){
           cutreal<- history[history$date <= mdate, ] # Cut real history at the missing date
-          wbeginning <- head(tail(cutreal$date, 209), 1) # Define beginning of 4 year window 
-          segment <- head(tail(cutreal[, type], 209), 208) # Define 4 year window
+          wbeginning <- head(tail(cutreal$date, (((rw_years+1)*52) + 1)), 1) # Define beginning of 4 year window 
+          segment <- head(tail(cutreal[, type], (((rw_years+1)*52) + 1)), ((rw_years+1)*52)) # Define 4 year window
           series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52) # Transform into a ts object
           
           # Forecast
           chosen.model <- select_model(beginning, series.ts, freq = "weekly", rw_years) # Choose model
-          mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly") # Output a forecast
+          mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly", rw_years) # Output a forecast
           missing.fcast <- data.frame(time = tail(cutreal$date, 1), 
                                       model = modelnames[chosen.model], 
                                       forecast = mcast$fcast[1],
@@ -1038,15 +1038,15 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
       
       for(i in seq(0, 23)){
         cutreal <- head(history, -(24-i)) # Erase (24-x) months from real history
-        beginning <- head(tail(cutreal$date, 49), 1) # Define beginning of 4 year window 
-        segment <- head(tail(cutreal[, type], 49), 48) # Define 4 year window
+        beginning <- head(tail(cutreal$date, (((rw_years+1)*12) + 1)), 1) # Define beginning of 4 year window 
+        segment <- head(tail(cutreal[, type], (((rw_years+1)*12) + 1)), ((rw_years+1)*12)) # Define 4 year window
         series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12) # Transform into a ts object
         
         scaleback <- as.numeric(bizdays(ts(seq(1), start = decimal_date(cutreal$date[length(cutreal$date)]), frequency = 12), FinCenter = "Zurich")) # Scaler for saving
         
         # Forecast
         chosen.model <- select_model(beginning, series.ts, freq = "monthly", rw_years) # Choose model
-        mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "monthly") # Output a forecast
+        mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "monthly", rw_years) # Output a forecast
         missing.fcast <- data.frame(time = tail(cutreal$date, 1), 
                                     model = modelnames[chosen.model], 
                                     forecast = mcast$fcast[1] * scaleback,
@@ -1073,13 +1073,13 @@ save_forecast <- function(fdf, months = TRUE, modelname, history, file, reverse_
       
       for(i in seq(0, 23)){
         cutreal <- head(history, -(24-i)) # Erase (24-x) weeks from real history
-        wbeginning <- head(tail(cutreal$date, 209), 1) # Define beginning of 4 year window 
-        segment <- head(tail(cutreal[, type], 209), 208)
+        wbeginning <- head(tail(cutreal$date, (((rw_years+1)*52) + 1)), 1) # Define beginning of 4 year window 
+        segment <- head(tail(cutreal[, type], (((rw_years+1)*52) + 1)), ((rw_years+1)*52))
         series.ts <- ts(segment, start = decimal_date(wbeginning), frequency = 52)
         
         # Forecast
         chosen.model <- select_model(wbeginning, series.ts, "weekly", rw_years) # Choose model
-        mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly") # Output a forecast
+        mcast <- chosen_forecast(chosen.model, series.ts, history, freq = "weekly", rw_years) # Output a forecast
         missing.fcast <- data.frame(time = tail(cutreal$date, 1), 
                                     model = modelnames[chosen.model], 
                                     forecast = mcast$fcast[1],

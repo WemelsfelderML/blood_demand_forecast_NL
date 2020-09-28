@@ -45,7 +45,7 @@ d <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
 d <- d[d$V2 != "",]
 
 # Set rolling window size in years
-rw_years <- 9
+rw_years <- 3
 ```
 
 ```{r modify_dataframe, include = FALSE}
@@ -73,11 +73,10 @@ df_list <- lapply(list(P, R, Pt, Rt), function(df) {
   
   # Datify
   df1$date <- mdy(df1$date)
-  # df1$exp <- mdy(df1$exp)
   
   # Numerify
-  df1$quantity <- as.numeric(df1$quantity)
-  # df1$volume <- as.numeric(df1$volume)
+  df1$quantity <- as.numeric(as.character(df1$quantity))
+  df1$quantity[is.na(df1$quantity)] <- 0
   
   return(df1)
 })
@@ -304,12 +303,12 @@ fdf_red_for_tables <- fdf_for_tables * reverse_adj # The tables need anything fr
 
 ```{r save_monthly_red, echo = FALSE}
 type <- "red"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_red_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type, modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type, modelname, palette) 
 ```
 
 <style>
@@ -347,12 +346,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Ominus, echo = FALSE}
 type <- "Ominus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Ominus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -390,12 +389,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Oplus, echo = FALSE}
 type  <- "Oplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Oplus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -433,12 +432,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Aminus, echo = FALSE}
 type <- "Aminus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Aminus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -476,12 +475,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Aplus, echo = FALSE}
 type <- "Aplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Aplus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -519,12 +518,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Bminus, echo = FALSE}
 type <- "Bminus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Bminus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -562,12 +561,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_Bplus, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
 type <- "Bplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_Bplus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -605,12 +604,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_ABminus, echo = FALSE}
 type <- "ABminus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_ABminus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -648,12 +647,12 @@ fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
 
 ```{r save_monthly_ABplus, echo = FALSE}
 type <- "ABplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years) # Check pffunctions.R
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_ABplus_fig, fig.align = "center", echo = FALSE}
-draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) # Check pffunctions.R
+draw_forecast(fdf_for_plots, freq = "monthly", monthly_real, type,  modelname, palette) 
 ```
 
 <style>
@@ -692,8 +691,8 @@ fdf_pla_for_tables <- fdf_for_tables * reverse_adj # The tables need anything fr
 
 ```{r save_monthly_plat, echo = FALSE}
 type <- "plat"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, monthly_pla_fig, fig.align = "center", echo = FALSE}
@@ -867,8 +866,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_red, echo = FALSE}
 type <- "red"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_red_fig, fig.align = "center", echo = FALSE}
@@ -907,8 +906,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_Ominus, echo = FALSE}
 type <- "Ominus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Ominus_fig, fig.align = "center", echo = FALSE}
@@ -947,8 +946,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_Oplus, echo = FALSE}
 type <- "Oplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Oplus_fig, fig.align = "center", echo = FALSE}
@@ -987,8 +986,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_Aminus, echo = FALSE}
 type <- "Aminus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Aminus_fig, fig.align = "center", echo = FALSE}
@@ -1027,8 +1026,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_Aplus, echo = FALSE}
 type <- "Aplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Aplus_fig, fig.align = "center", echo = FALSE}
@@ -1067,8 +1066,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_Bminus, echo = FALSE}
 type <- "Bminus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Bminus_fig, fig.align = "center", echo = FALSE}
@@ -1107,8 +1106,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_Bplus, echo = FALSE}
 type <- "Bplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_Bplus_fig, fig.align = "center", echo = FALSE}
@@ -1147,8 +1146,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_ABminus, echo = FALSE}
 type <- "ABminus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_ABminus_fig, fig.align = "center", echo = FALSE}
@@ -1187,8 +1186,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_ABplus, echo = FALSE}
 type <- "ABplus"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_ABplus_fig, fig.align = "center", echo = FALSE}
@@ -1227,8 +1226,8 @@ fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_yea
 
 ```{r save_weekly_plat, echo = FALSE}
 type <- "plat"
-# # save_forecast(fdf, months = TRUE, modelname, monthly, paste0(WEEKLYDIR, type, ".csv"), reverse_adj, rw_years)
-write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
 ```
 
 ```{r, weekly_plat_fig, fig.align = "center", echo = FALSE}
@@ -1247,63 +1246,73 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 
 ### All red
 
-```{r red_history, fig.align = "center", echo = FALSE}
-type <- "red"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+```{r red_history, echo=, fig.align="center"}
+type <-"red"
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### O-
 ```{r Ominus_history, fig.align = "center", echo = FALSE}
 type <- "Ominus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### O+
 ```{r Oplus_history, fig.align = "center", echo = FALSE}
 type <- "Oplus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A-
 ```{r Aminus_history, fig.align = "center", echo = FALSE}
 type <- "Aminus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A+
 ```{r Aplus_history, fig.align = "center", echo = FALSE}
 type <- "Aplus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B-
 ```{r Bminus_history, fig.align = "center", echo = FALSE}
 type <- "Bminus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B+
 ```{r Bplus_history, fig.align = "center", echo = FALSE}
 type <- "Bplus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### AB-
 ```{r ABminus_history, fig.align = "center", echo = FALSE}
 type <- "ABminus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### AB+
 ```{r ABplus_history, fig.align = "center", echo = FALSE}
 type <- "ABplus"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### Platelets
 ```{r plat_history, fig.align = "center", echo = FALSE}
 type <- "plat"
-draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", type, palette)
+html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
+save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 
@@ -1312,59 +1321,69 @@ draw_history(paste0(MONTHLYDIR, type, ".csv"), monthly_real, freq = "monthly", t
 ### All red
 ```{r red_weekly_history, fig.align = "center", echo = FALSE}
 type <- "red"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### O-
 ```{r Ominus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Ominus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### O+
 ```{r Oplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Oplus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A-
 ```{r Aminus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Aminus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A+
 ```{r Aplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Aplus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B-
 ```{r Bminus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Bminus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B+
 ```{r Bplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Bplus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### AB-
 ```{r ABminus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "ABminus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### AB+
 ```{r ABplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "ABplus"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```
 
 ### Platelets
 ```{r plat_weekly_history, fig.align = "center", echo = FALSE}
 type <- "plat"
-draw_history(paste0(WEEKLYDIR, type, ".csv"), weekly, freq = "weekly", type, palette)
+html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
+save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
 ```

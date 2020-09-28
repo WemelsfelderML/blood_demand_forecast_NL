@@ -13,7 +13,7 @@ method_avg_best <- "best"
 period <- "w"               # m for monthly, w for weakly
 
 # list of all considered rolling window sizes (years)
-rolling_windows <- c(1:5)
+rolling_windows <- c(3:7)
 
 # names and groups
 modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS", "STLF", "ARIMAX", "DYNREG", "NN", "COMBINED")
