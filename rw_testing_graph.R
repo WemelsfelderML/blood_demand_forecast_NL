@@ -9,11 +9,11 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
-method_avg_best <- "best"
+method_avg_best <- "avg"
 period <- "w"               # m for monthly, w for weakly
 
 # list of all considered rolling window sizes (years)
-rolling_windows <- c(3:7)
+rolling_windows <- c(3:4)
 
 # names and groups
 modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS", "STLF", "ARIMAX", "DYNREG", "NN", "COMBINED")
@@ -56,7 +56,9 @@ if (method_avg_best == "avg"){
       df_plot[c(1:nrow(h[[toString(rw)]])),ncol(df_plot)+1] <- h[[toString(rw)]][,group]
     }
     colnames(df_plot) <- rolling_windows
-    boxplot(df_plot, main = paste0("Errors for ", group, "\nfor different rolling window sizes"), xlab = "rolling window (years)", ylab = "errors red blood cells, all methods")
+    png(file= paste0(ROOTDIR, "rw_testing/img/", period, "_avg_", group, ".png"))
+    boxplot(df_plot, main = paste0("Errors for ", group, "\nfor different rolling window sizes"), xlab = "rolling window (years)", ylab = "errors all methods")
+    dev.off()
   }
 } 
 
@@ -72,10 +74,12 @@ if (method_avg_best == "best"){
   df_plot <- df_plot[,rolling_windows]
   colnames(df_plot) <- rolling_windows
   
-  plot(1, type = "n", main = paste0("Errors for different rolling window sizes"), xlab = "rolling window (years)", ylab = "errors red blood cells", xlim = c(min(rolling_windows), max(rolling_windows)), ylim = c(0,max(df_plot)))
+  png(file= paste0(ROOTDIR, "rw_testing/img/", period, "_best.png"))
+  plot(1, type = "n", main = paste0("Errors for different rolling window sizes"), xlab = "rolling window (years)", ylab = "errors chosen method", xlim = c(min(rolling_windows), max(rolling_windows)), ylim = c(0,max(df_plot)))
   for (i in c(1:length(groups))) {
     lines(x=rolling_windows, y=df_plot[groups[i],], col=colors[i], type="o", lwd=2, pch = 19)
   }
   legend("bottomright", legend=groups, col=colors, pch = 19, inset = c(0.1, 0.1))
+  dev.off()
 }
 

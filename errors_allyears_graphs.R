@@ -55,13 +55,13 @@ for (i in c(0:(length(groups)-1))) {
   df.group <- df.sums[c(start:stop),c(2:ncol(df.sums))]
   group <- groups[i+1]
   
-  png(file= paste0(ROOTDIR, "rw_testing/all_years/", period, "_errors_rwy", toString(rw), "_", group, ".png"))
-  plot(1, type = "n", main = group, xlim=c((max(d$year)-(n*(merge.months/12))+1), (max(d$year)+1-(merge.months)/12)), ylim=c(1,max(df.group)))
+  png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, ".png"))
+  plot(1, type = "n", main = paste0(group, ", rw", rw, "\naveraged over each ", merge.months, " months"), xlim=c((max(d$year)-(n*(merge.months/12))+1), (max(d$year)+1-(merge.months)/12)), ylim=c(0,max(df.group)), xlab="year", ylab="avg error")
   for (i in c(1:nrow(df.group))) {
     print(df.group[i,],)
     lines(x=seq((max(d$year)-(n*(merge.months/12))+1), (max(d$year)+1-(merge.months)/12), (merge.months/12)), y=df.group[i,], col=colors[i], type="o", lwd=2, pch = 19)
   }
-  legend("bottomleft", legend=modelnames, col=colors, pch = 19)
+  legend("topleft", legend=modelnames, col=colors, pch = 19)
   dev.off()
 }
 

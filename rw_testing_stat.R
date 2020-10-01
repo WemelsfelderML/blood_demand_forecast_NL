@@ -12,11 +12,11 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
-period <- "w"               # m for monthly, w for weakly
+period <- "m"               # m for monthly, w for weakly
 groups <- c("RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLAT")
 
 # list of all considered rolling window sizes (years)
-rolling_windows <- c(3:7)
+rolling_windows <- c(3:9)
 
 # put everything in a function in order to efficiently execute for each blood group
 fun <- function(method_avg_best, period, group, rolling_windows){
@@ -65,26 +65,26 @@ fun <- function(method_avg_best, period, group, rolling_windows){
   # execute paired t-test on all combinations of rolling window size,
   # and write output to rw_testing directory
   
-  cat(paste0("Ha: MEANS ARE DIFFERENT", "\n"), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+  cat(paste0("Ha: MEANS ARE DIFFERENT", "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   for (i in c(1:length(rw_comb))){
-    cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
-    cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "two.sided")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+    cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
+    cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "two.sided")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   }
-  cat("\n", file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+  cat("\n", file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   
-  cat(paste0("Ha: FIRST MEAN > SECOND MEAN", "\n"), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+  cat(paste0("Ha: FIRST MEAN > SECOND MEAN", "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   for (i in c(1:length(rw_comb))){
-    cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
-    cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "greater")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+    cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
+    cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "greater")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   }
-  cat("\n\n", file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+  cat("\n", file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   
-  cat(paste0("Ha: FIRST MEAN < SECOND MEAN", "\n"), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+  cat(paste0("Ha: FIRST MEAN < SECOND MEAN", "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   for (i in c(1:length(rw_comb))){
-    cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
-    cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "less")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+    cat(paste0(rw_comb[i][[1]][1],",",rw_comb[i][[1]][2], ": "), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
+    cat(paste0(t.test(all_errors[,toString(rw_comb[i][[1]][1])], all_errors[,toString(rw_comb[i][[1]][2])], paired = TRUE, alternative = "less")[["p.value"]], "\n"), file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
   }
-  cat("\n\n", file=paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), append=TRUE)
+  cat("\n\n", file=paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), append=TRUE)
 }
 
 for (group in groups) {

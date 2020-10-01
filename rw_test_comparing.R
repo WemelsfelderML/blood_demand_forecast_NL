@@ -8,12 +8,12 @@ library(hash)
 # SETTINGS
 ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 groups <- c("RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLAT")
-period <- "w"               # m for monthly, w for weakly
-rw.all <- c(3:7)            # selection of rolling windows to be tested
+period <- "m"               # m for monthly, w for weakly
+rw.all <- c(3:9)            # selection of rolling windows to be tested
 
 fun <- function(ROOTDIR, period, group, rw.all){
   # load data
-  df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_t-tests_", group, ".txt"), header = FALSE)
+  df <- read.delim(file = paste0(ROOTDIR, "rw_testing/t-tests/", period, "_", group, ".txt"), header = FALSE)
   df <- cbind(df, str_split_fixed(df$V1, "[:,]", 3))[-1]
   colnames(df) <- c("rw1","rw2","pval")
   
@@ -71,5 +71,7 @@ for (group in groups){
 }
 colnames(best.rws) <- append("rw", groups)
 best.rws$total = rowSums(best.rws[,c(-1)])
+best.rws <- best.rws[complete.cases(best.rws),]
 
+write.csv(best.rws , paste0(ROOTDIR, "rw_testing/t-tests/", period, "_comparison.csv"), row.names = TRUE)
 View(best.rws)
