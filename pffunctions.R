@@ -1,6 +1,6 @@
 # Helper functions for forecast_script.Rmd
 
-extract_type <- function(red.distr, type){
+extract_type <- function(red.distr, type,start=as.Date("2009-01-01")){
   # Separate blood types from the master frame.
   # 
   # param:: red.distr: The master frame. Distribution of red cell products.
@@ -21,7 +21,7 @@ extract_type <- function(red.distr, type){
   # Replace with zeroes
   typed.distr[is.na(typed.distr)] <- 0
   # Cut to time after 2014
-  # typed.distr <- typed.distr[typed.distr$date >= as.Date("2014-01-01"), ]
+  typed.distr <- typed.distr[typed.distr$date >= start, ]
   
   return(typed.distr)
 }
