@@ -36,6 +36,8 @@ library(data.table)
 library(R.utils)
 library(DT)
 library(stringr)
+library(htmltools)
+library(hash)
 source("pffunctions.R")
 ```
 
@@ -45,7 +47,7 @@ d <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
 d <- d[d$V2 != "",]
 
 # Set rolling window size in years
-rw_years <- 3
+rw_years <- 9
 ```
 
 ```{r modify_dataframe, include = FALSE}
@@ -293,7 +295,7 @@ cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=T
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
-# Extended for yearly estimates
+# Extended for yearly estimates 
 fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
 
 # Scalings
@@ -1123,7 +1125,7 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 
 </div>
 
-### AB-
+### AB- 
 ```{r weekly_model_selection_ABminus, echo = FALSE, results = FALSE}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
@@ -1249,141 +1251,141 @@ Forecast for week `r week(last_month)` of `r lubridate::year(last_month)`: `r fo
 ```{r red_history, echo=, fig.align="center"}
 type <-"red"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### O-
 ```{r Ominus_history, fig.align = "center", echo = FALSE}
 type <- "Ominus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### O+
 ```{r Oplus_history, fig.align = "center", echo = FALSE}
 type <- "Oplus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A-
 ```{r Aminus_history, fig.align = "center", echo = FALSE}
 type <- "Aminus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A+
 ```{r Aplus_history, fig.align = "center", echo = FALSE}
 type <- "Aplus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B-
 ```{r Bminus_history, fig.align = "center", echo = FALSE}
 type <- "Bminus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B+
 ```{r Bplus_history, fig.align = "center", echo = FALSE}
 type <- "Bplus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### AB-
 ```{r ABminus_history, fig.align = "center", echo = FALSE}
 type <- "ABminus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### AB+
 ```{r ABplus_history, fig.align = "center", echo = FALSE}
 type <- "ABplus"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### Platelets
 ```{r plat_history, fig.align = "center", echo = FALSE}
 type <- "plat"
 html <- draw_history(paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), monthly_real, freq = "monthly", type, palette)
-save_html(html, paste0(MONTHLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(MONTHLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 
 ## Weekly history {.tabset .tabset-fade .tabset-pills}
 
-### All red
+### All red 
 ```{r red_weekly_history, fig.align = "center", echo = FALSE}
 type <- "red"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
-
-### O-
+ 
+### O- 
 ```{r Ominus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Ominus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### O+
 ```{r Oplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Oplus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A-
 ```{r Aminus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Aminus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### A+
 ```{r Aplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Aplus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B-
 ```{r Bminus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Bminus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### B+
 ```{r Bplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "Bplus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### AB-
 ```{r ABminus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "ABminus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
-```
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
+``` 
 
 ### AB+
 ```{r ABplus_weekly_history, fig.align = "center", echo = FALSE}
 type <- "ABplus"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```
 
 ### Platelets
 ```{r plat_weekly_history, fig.align = "center", echo = FALSE}
 type <- "plat"
 html <- draw_history(paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), weekly, freq = "weekly", type, palette)
-save_html(html, paste0(WEEKLYDIR, type, ".html"), background = "white", libdir = "lib")
+save_html(html, paste0(WEEKLYDIR, "forecasts/", type, "_rwy", rw_years, ".html"), background = "white", libdir = "lib")
 ```

@@ -7,7 +7,7 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 types <- c("Red","O-","O+","A-","A+","B-","B+","AB-","AB+","Plat")
 period <- "w"   # 4w, 6m
-rolling_windows <- c(3:4)
+rolling_windows <- c(3:5)
 
 for (rw in rolling_windows) {
   # Read errors file

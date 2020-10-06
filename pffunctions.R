@@ -145,10 +145,18 @@ select_model <- function(beginning, series.ts, freq, rw_years){
                          ncol = 11,
                          byrow = TRUE)
     month.m <- matrix(ncol = 11, nrow = nrow)
-    for(j in 1:nrow){
-      month.m[j,] <- onehotyear[month(beginning + months(j - 1) + months(i - 1)),]
+    
+    if (freq == "monthly") {
+      for(j in 1:nrow){
+        month.m[j,] <- onehotyear[month(beginning + months(j - 1) + months(i - 1)),]
+      }
+      horizon.m <- matrix(onehotyear[month(beginning + months(nrow + i - 1)), ], ncol = 11)
+    } else if (freq == "weekly") {
+      for(j in 1:length(train)){
+        month.m[j,] <- onehotyear[month((beginning + weeks(j - 1)) + weeks(i - 1)), ]
+      }
+      horizon.m <- matrix(onehotyear[month(beginning + weeks(nrow + i - 1)), ], ncol = 11)
     }
-    horizon.m <- matrix(onehotyear[month(beginning + months(nrow + i - 1)), ], ncol = 11)
     
     fcasts.comb <- c()
     
@@ -216,6 +224,7 @@ select_model <- function(beginning, series.ts, freq, rw_years){
 }
 
 chosen_forecast <- function(chosen.model, series.ts, monthly, freq = "monthly", rw_years){
+  
   if(freq == "monthly"){  # Monthly forecast
     train <- ts(tail(series.ts, (rw_years * 12)), start = decimal_date(head(tail(monthly$date, (rw_years * 12)), 1)), frequency = 12)  # 3 year window
     # xregs for arimax

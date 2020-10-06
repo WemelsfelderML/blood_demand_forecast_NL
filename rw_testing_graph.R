@@ -9,11 +9,11 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
-method_avg_best <- "avg"
+method_avg_best <- "best"
 period <- "w"               # m for monthly, w for weakly
 
 # list of all considered rolling window sizes (years)
-rolling_windows <- c(3:4)
+rolling_windows <- c(3:5)
 
 # names and groups
 modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS", "STLF", "ARIMAX", "DYNREG", "NN", "COMBINED")
