@@ -5,6 +5,7 @@
 *.xlsm
 *.html
 /archive/
+/histories/
 
 # History files
 .Rhistory
