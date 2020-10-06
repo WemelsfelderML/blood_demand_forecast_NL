@@ -12,11 +12,11 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
-period <- "m"               # m for monthly, w for weakly
+period <- "w"               # m for monthly, w for weakly
 groups <- c("RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLAT")
 
 # list of all considered rolling window sizes (years)
-rolling_windows <- c(3:9)
+rolling_windows <- c(3:5)
 
 # put everything in a function in order to efficiently execute for each blood group
 fun <- function(method_avg_best, period, group, rolling_windows){
