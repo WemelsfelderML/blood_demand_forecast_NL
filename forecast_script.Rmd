@@ -47,7 +47,7 @@ d <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
 d <- d[d$V2 != "",]
 
 # Set rolling window size in years
-rw_years <- 9
+rw_years <- 8
 ```
 
 ```{r modify_dataframe, include = FALSE}

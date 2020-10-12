@@ -19,23 +19,30 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 period <- "m"               # m for monthly, w for weakly
 rw <- 3
 groups <- c("RED", "Ominus", "Oplus", "Aminus", "Aplus", "Bminus", "Bplus", "ABminus", "ABplus", "PLAT")
-colors = append(brewer.pal(12, name="Paired"), "#555555")
+# method.select <- c("snaive", "5-MA", "7-MA", "9-MA", "12-MA", "stl", "ets", "tbats", "stlf", "arimax", "dynreg", "nn", "combined")
+method.select <- c("stlf", "7-MA", "ets", "nn", "dynreg", "tbats")        # monthly
+# method.select <- c("combined", "snaive", "stl", "5-MA", "ets", "dynreg")    # weekly
 merge.months = 6
 
 # PRE-PROCESSING
 
 # reshape error data frames and put them together in a hash set with rolling window size as key
 df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_all.txt"), header = FALSE, sep = ";")
-df <- df[c(1:140),]
-modelnames <- df[c(2:14), "V1"]
-# df <- df[c(1:(nrow(df)/10)),]
+df <- df[df$V1 %in% method.select,]
+rownames(df) <- NULL
 
 # abstract year span from original data
 d <- read.delim(file = paste0(ROOTDIR, "data/data_processed.csv"), header = TRUE, sep = ",")
 d$year <- as.numeric(format(as.Date(d$Date, format="%d/%m/%Y"),"%Y"))
 
 # number of methods tested for each blood group
-m <- nrow(df)/length(groups) - 1
+m <- length(method.select)
+method.names <- array(df[c(1:m),1])
+if (m == 13) {
+  colors = append(brewer.pal(12, name="Paired"), "#555555")
+} else {
+  colors = brewer.pal(m, name="Paired")
+}
 
 # merge months to get a clearer overview
 df.sums <- data.frame(df$V1)
@@ -47,21 +54,31 @@ for (i in c(0:(n-1))) {
   df.sums[,ncol(df.sums)+1] <- rowSums(df[,c(start:stop)])/merge.months
 }
 
+# set periodicity for text in plot
+if (period == "m") {
+  p <- 12
+  t <- " months"
+  pd <- ", monthly"
+} else if (period == "w") {
+  p <- 52
+  t <- " weeks"
+  pd <- ", weekly"
+}
+
 # plot averaged erorrs per method per year in history, 
 # for each blood group separately
 for (i in c(0:(length(groups)-1))) {
-  start <- (i*m) + i + 2
+  start <- (i*m) + 1
   stop <- start + m - 1
   df.group <- df.sums[c(start:stop),c(2:ncol(df.sums))]
   group <- groups[i+1]
   
   png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, ".png"))
-  plot(1, type = "n", main = paste0(group, ", rw", rw, "\naveraged over each ", merge.months, " months"), xlim=c((max(d$year)-(n*(merge.months/12))+1), (max(d$year)+1-(merge.months)/12)), ylim=c(0,max(df.group)), xlab="year", ylab="avg error")
+  plot(1, type = "n", main = paste0(group, ", rw", rw, pd, "\naveraged over each ", merge.months, t), xlim=c((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p)), ylim=c(0,max(df.group)), xlab="year", ylab="avg error")
   for (i in c(1:nrow(df.group))) {
-    print(df.group[i,],)
-    lines(x=seq((max(d$year)-(n*(merge.months/12))+1), (max(d$year)+1-(merge.months)/12), (merge.months/12)), y=df.group[i,], col=colors[i], type="o", lwd=2, pch = 19)
+    lines(x=seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p)), y=df.group[i,], col=colors[i], type="o", lwd=2, pch = 19)
   }
-  legend("topleft", legend=modelnames, col=colors, pch = 19)
+  legend("topleft", legend=method.names, col=colors, pch = 19)
   dev.off()
 }
 

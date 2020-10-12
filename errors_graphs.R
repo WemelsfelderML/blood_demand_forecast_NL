@@ -6,8 +6,9 @@ colors = brewer.pal(12, name="Paired")
 ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 types <- c("Red","O-","O+","A-","A+","B-","B+","AB-","AB+","Plat")
-period <- "w"   # 4w, 6m
-rolling_windows <- c(3:5)
+period <- "m"   # w, m
+p <- "month"
+rolling_windows <- c(3:9)
 
 for (rw in rolling_windows) {
   # Read errors file
@@ -36,7 +37,7 @@ for (rw in rolling_windows) {
     
     # Plot errors
     png(file= paste0(ROOTDIR, "rw_testing/img/elaborate/", period, "_rwy", rw, "_", type , ".png"))
-    plot(1, type = "n", main = paste0("rw: ", rw, "\ngroup: ", type, "\nchosen: ", chosen), xlab = "month of validation year", ylab = "error", xlim = c(1,(ncol(errors)-1)), ylim = c(0,max(errors[,-1])))
+    plot(1, type = "n", main = paste0("rw: ", rw, "\ngroup: ", type, "\nchosen: ", chosen), xlab = paste0(p, " of validation year"), ylab = "error", xlim = c(1,(ncol(errors)-1)), ylim = c(0,max(errors[,-1])))
     for (i in c(1:13)) {
       lwd = 1
       if (str_to_upper(errors[i,1]) == str_to_upper(chosen)) {
