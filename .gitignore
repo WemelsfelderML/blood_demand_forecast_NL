@@ -2,6 +2,7 @@
 *.txt
 *.csv
 *.png
+*.pdf
 *.xlsm
 *.html
 /archive/
