@@ -17,8 +17,8 @@ library(zoo)
 #SETTINGS
 
 #Select are we using NL or FIN data
-#NL <- FALSE
-NL <- TRUE
+NL <- FALSE
+#NL <- TRUE
 
 # working directory
 if (NL) {
@@ -31,8 +31,9 @@ if (NL) {
 
 period <- "m"               # m for monthly, w for weakly
 rw <- 3
-# method.select <- c("snaive", "5-MA", "7-MA", "9-MA", "12-MA", "stl", "ets", "tbats", "stlf", "arimax", "dynreg", "nn", "combined")
-method.select <- c("stlf", "7-MA", "ets", "nn", "dynreg", "tbats")        # monthly
+method.select <- c("snaive", "5-MA", "7-MA", "9-MA", "12-MA", "stl", "ets", "tbats", "stlf", "arimax", "dynreg", "nn", "combined")
+# method.select <- c("stlf", "7-MA", "ets", "nn", "dynreg", "tbats")        # monthly
+#method.select <- c("7-MA", "ets","tbats", "stlf", "dynreg", "nn")        # monthly FIN 20201023
 # method.select <- c("combined", "snaive", "stl", "5-MA", "ets", "dynreg")    # weekly
 merge.months = 6
 
@@ -67,7 +68,6 @@ df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", to
 # 13     nn 5.9707662         tbats
 #Put method.select <- c("stlf", "7-MA", "ets", "nn", "dynreg", "tbats")        # monthly
 #in the same order that they are in the file. IS THIS THE SAME IN FIN AND NL???
-method.select <- c("7-MA", "ets","tbats", "stlf", "dynreg", "nn")        # monthly
 #cbind(df[df$V1 %in% method.select,1:2],method.select)
 # > cbind(df[df$V1 %in% method.select,1:2],method.select)
 # V1        V2 method.select
@@ -97,7 +97,7 @@ method.names <- array(df[c(1:m),1])
 if (m == 13) {
   colors = append(brewer.pal(12, name="Paired"), "#555555")
 } else {
-  colors = brewer.pal(m, name="Paired")
+  colors = brewer.pal(m, name="Set3")
 }
 
 # merge months to get a clearer overview
@@ -168,8 +168,8 @@ if (NL) {
   df.plot <- as_tibble(df.group)
 }
 names(colors) <- method.select
-colnames(df.plot) <- seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p))
-df.plot$Method <- method.select
+colnames(df.plot) <- c("Method",seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p)))
+#df.plot$Method <- method.select
 df.plot <- df.plot %>% pivot_longer(cols= !Method) %>% mutate(Year=as.numeric(name))
 gr <- ggplot(df.plot)
 gr <- gr + geom_point(aes(x=Year,y=value,color=Method,group=Method),size=4)
@@ -178,19 +178,21 @@ gr <- gr + scale_colour_manual(name = "Method",values = colors) + ylab("Predicti
 gr <- gr + theme_bw(base_size = 18)
 gr <- gr + theme(legend.position = "bottom", legend.direction = "horizontal")
 if (NL) {
-  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", "red", "_gg.pdf")
+  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_",length(method.select) ,"_red", "_gg.pdf")
 } else {
-  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", "red", "_gg_FIN.pdf")
+  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_",length(method.select) ,"_red", "_gg_FIN.pdf")
 }
 ggsave(filename=filename, gr, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
 
-<<<<<<< HEAD
+gr <- gr + facet_wrap(~Method)
 
+if (NL) {
+  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_",length(method.select) ,"_red", "_gg_f.pdf")
+} else {
+  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_",length(method.select) ,"_red", "_gg_f_FIN.pdf")
+}
+ggsave(filename=filename, gr, width = 360,  height = 450,units="mm", dpi=600, scale=1.0)
 
-
-
-=======
->>>>>>> d00053341a2b173c09b75264b309059f60350f77
 #Another way to count....
 # d2 <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_all.txt"), header = FALSE, sep = ";")
 # d2 <- d2[d2$V1 %in% method.select,]

@@ -303,12 +303,14 @@ last_month <- tail(monthly$date, 1) # Not using "today()" as the data may not re
 
 # We will need these stored
 modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS", "STLF", "ARIMAX", "DYNREG", "NN", "COMBINED")
-beginning
 
 file <- "fulldata.rdata"
 out <- list(monthly=monthly, monthly_real=monthly_real)
 save(out,file=file)
 beginning
+min(monthly$date)
+max(monthly$date)
+
 ```
 
 
