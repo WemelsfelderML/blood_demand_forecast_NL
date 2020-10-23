@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
-# echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201022.html')" | R --slave
+# echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201023.html')" | R --slave
 
 # Set working directory
 ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/" # Your directory
@@ -243,7 +243,7 @@ plat.2004 <- monthly2004[,c("month","year","Trombosyyttivalmisteet")]
 colnames(plat.2004) <- colnames(plat.monthly)
 plat.2004$`month(date)` <- as.integer(plat.2004$`month(date)`)
 plat.2004$`year(date)` <- as.integer(as.character(plat.2004$`year(date)`))
-plat.2004<- red.2004[order(plat.2004$`year(date)`,plat.2004$`month(date)`),]
+plat.2004<- plat.2004[order(plat.2004$`year(date)`,plat.2004$`month(date)`),]
 plat.2004$Date<- as.Date(as.yearmon(paste0(plat.2004$`year(date)`,'-',plat.2004$`month(date)`)))
 head(plat.2004)
 ```
@@ -297,9 +297,8 @@ monthly_real <- data.frame(date = months,
                            #plat = plat.monthly$pcs #First I need to figure out how to glue the data together
                            )
 
-#beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1) # Define beginning of (monthly) time here THIS IS FOR USING ONLY LAST FOR YEARS OF DATA
-#beginning <- tail(head(monthly$date, ((rw_years+1) * 12 + 1)), 1)
-beginning <- tail(head(monthly$date, ((rw_years) * 12 + 1)), 1) #When using full data start after 3 years of data beginning
+beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1) ## Define beginning of (monthly) time here THIS IS FOR USING ONLY LAST (rw_years +1) YEARS OF DATA for chosing model
+
 last_month <- tail(monthly$date, 1) # Not using "today()" as the data may not reach to current date
 
 # We will need these stored
@@ -309,12 +308,13 @@ beginning
 file <- "fulldata.rdata"
 out <- list(monthly=monthly, monthly_real=monthly_real)
 save(out,file=file)
+beginning
 ```
 
 
 
 ### All red
-```{r monthly_model_selection_red, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
+```{r monthly_model_selection_red}
 # Define the series to be used
 # We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
 #segment <- head(tail(monthly$red, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
@@ -322,63 +322,40 @@ save(out,file=file)
 #Instead use full data
 series.ts <- ts(monthly$red,start =  c(2004, 1), frequency = 12)
 
-
-cat("Red\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-cat("Red\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
-modelname <- modelnames[chosen.model]
-cat(str_replace_all(paste0("Red;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
-cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+rw_ys <- c(3:8)
+for(i in rw_ys) {
+  b <- beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
+  cat("beginning:",as.Date(b),"rw_years:",i,"\n")
+  cat("Red\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
+  cat("Red\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
+  chosen.model <- select_model(b, series.ts, "monthly", i)
+  modelname <- modelnames[chosen.model]
+  cat(str_replace_all(paste0("Red;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", i, "_chosen.txt"), append=TRUE)
+  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
+  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
+}
 ```
 
-```{r monthly_fcast_red, echo = FALSE, results = FALSE}
-# # Now forecast with the chosen model
-# fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
-# 
-# # Extended for yearly estimates
-# fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
-# 
-# # Scalings
-# fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
-# fdf_red_for_tables <- fdf_for_tables * reverse_adj # The tables need anything from 6 months to 23 months, so we just scale everything from the extended 
-```
 
-```{r save_monthly_red, echo = FALSE}
-#type <- "red"
-#save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
-# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
 ### Platelets
-```{r monthly_model_selection_plat, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
+```{r monthly_model_selection_plat}
 # Define the series to be used
-# We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
-# segment <- head(tail(monthly$plat, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
-# series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
-# 
-# cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-# cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-# chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
-# modelname <- modelnames[chosen.model]
-# cat(str_replace_all(paste0("Plat;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
-# cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-# cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
+series.ts <- ts(monthly$red,start =  c(2004, 1), frequency = 12)
 
-```{r monthly_fcast_plat, echo = FALSE, results = FALSE}
-# # Now forecast with the chosen model
-# fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
-# fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
-# 
-# fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
-# fdf_pla_for_tables <- fdf_for_tables * reverse_adj # The tables need anything from 6 months to 23 months, so we just scale everything from the extended
-```
-
-```{r save_monthly_plat, echo = FALSE}
-# type <- "plat"
-# save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
-# # # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+rw_ys <- c(3:8)
+for(i in rw_ys) {
+  b <- beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
+  cat("beginning:",as.Date(b),"rw_years:",i,"\n")
+  cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
+  cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
+  chosen.model <- select_model(b, series.ts, "monthly", i)
+  modelname <- modelnames[chosen.model]
+  cat(str_replace_all(paste0("Plat;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", i, "_chosen.txt"), append=TRUE)
+  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
+  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
+  
+}
 ```
 
 
