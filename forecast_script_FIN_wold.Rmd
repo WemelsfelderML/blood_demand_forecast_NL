@@ -1,0 +1,411 @@
+---
+title: "Production Forecasts"
+output: html_document
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201022.html')" | R --slave
+
+# Set working directory
+ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/" # Your directory
+DATADIR <- paste0("~/Work/proj/OPERATIONAL/production_forecasts/data/FACS_with202006and2020067_noBloodGroup")
+HISTORYDIR <- paste0(ROOTDIR, "histories/") # monthly
+MONTHLYDIR <- paste0(ROOTDIR, "histories/monthly_") # monthly
+WEEKLYDIR <- paste0(ROOTDIR, "histories/weekly_") # weekly
+
+knitr::opts_chunk$set(root.dir = ROOTDIR, warning = FALSE, message = FALSE) # No warnings for final output
+knitr::opts_knit$set(root.dir = ROOTDIR, warning = FALSE, message = FALSE)
+
+# Colorblind palette
+# black, orange, sky blue, green,
+# yellow, blue, vermilion, purple
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
+                "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# These colors work server side for now:
+palette <- list(1, 1, 1, 0.7, "royalblue2", "deepskyblue1", "darkred", "darkgreen")
+names(palette) <- c("alpha80", "alpha95", "alphaSeg", "alphaPred", "fill80", "fill95", "colPred", "colData")
+```
+
+```{r imports, message=FALSE, warning=FALSE, echo=FALSE}
+library(forecast)
+library(ggplot2)
+library(gridExtra)
+library(knitr)
+library(plyr)
+library(lubridate)
+library(numbers)
+library(data.table)
+library(R.utils)
+library(DT)
+library(stringr)
+library(hash)
+library(zoo)
+source("pffunctions.R")
+# Set rolling window size in years
+rw_years <- 3
+start_date <- as.Date("2014-01-01")
+```
+
+
+```{r read_files, include = FALSE}
+# Get all the files
+files <- list.files(path = DATADIR, pattern = "FAC0091_*")  # Character vector of file names
+
+# Compile a dataframe by going over all files
+dlist <- list()
+for (i in files) {
+  # Read a single file to a df called d
+  d <- read.delim(file = paste0(DATADIR, "/", i), header = FALSE, sep = ";", stringsAsFactors = FALSE, colClasses = 'character')
+  
+  if(length(d) == 26){
+    d <- d[, !(names(d) %in% c("V10"))]  # The column numbers unfortunately vary between files, so we'll adjust
+    }
+  
+  colnames(d) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10",
+                   "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20",
+                   "V21", "V22", "V23", "V24", "V25")  # This is done so as to have easier column handling later on
+  dlist[[i]] <- d
+}
+
+d <- as.data.frame(rbindlist(dlist, fill = TRUE))
+```
+
+```{r modify_dataframe, include = FALSE}
+# Divide into distributions (P) and returns (R)
+P <- d[d$V1 == "P", ]
+R <- d[d$V1 == "R", ]
+
+# For distributions, we'll keep Distribution date, Quantity, ABO type, Volume, Exp date
+keep <- c("V12", "V14", "V18", "V20", "V22", "V24")
+distr <- P[keep]
+colnames(distr) <- c("date", "product", "quantity", "ABO", "volume", "exp")
+
+# For returns we keep the return date and quantity
+keep <- c("V4", "V5", "V7")
+retrn <- R[keep]
+colnames(retrn) <- c("date", "product", "quantity")
+
+# Datify
+distr$date <- dmy(distr$date); distr$exp <- dmy(distr$exp)
+retrn$date <- dmy(retrn$date)
+
+# Numerify
+distr$quantity <- as.numeric(distr$quantity); distr$volume <- as.numeric(distr$volume)
+retrn$quantity <- as.numeric(retrn$quantity)
+
+# Product codes for red cell products
+red.codes <- c("budTR001", "A0071V00", "A0074V00", "A0092VA0", "A0092VB0", 
+               "E3844V00", "E3845V00", "E3846VA0", "E3846VB0", "E3846VC0",
+               "E3846V00", "E3847VA0", "E3847VB0", "E3847VC0", "E3847V00",
+               "E3936VA0", "E3936VB0", "E3939V00", "E3940V00", "E4683V00",
+               "E7668V00", "E7673V00", "E4999V00", "E5000V00")
+
+red.distr <- distr[distr$product %in% red.codes, ]
+red.retrn <- retrn[retrn$product %in% red.codes, ]
+
+# Product codes for platelets
+plat.codes <- c("budTR002", "trEnnApu", "A0004V00", "A0005V00", "A0006V00", "A0007V00", "A0008V00",
+                "A0086VA0", "A0086VB0", "A0086V00", "A0088V00", "A0088VA0", "A0088VB0", "A0089V00",
+                "A0089VB0", "A0089VA0", "A0090V00", "A0090VA0", "A0090VB0", "A0018V00", "A0020V00", 
+                "A0021V00", "A0021VA0", "A0021VB0", "A0047V00", "A0049V00", "A0051V00", "A0054V00",
+                "A0055V00", "A0056V00", "A0057V00", "A0059V00", "A0060V00", "A0067VA0", "A0067VB0",
+                "A0067V00", "A0068VA0", "A0068VB0", "A0068V00", "A0075V00", "A0101V00", "A0102V00",
+                "E3949V00", "E3953V00", "E3954V00", "E3955V00", "E3956V00", "E3957V00", "E3958V00",
+                "E3959V00", "E3960V00", "E3961V00", "E3962V00", "E3963V00", "E3964V00", "E3965V00", 
+                "E3966V00", "E3968VA0", "E3968VB0", "E3968V00", "E3970V00", "E3971V00", "E3973V00",
+                "E3974V00", "E3976V00", "E3981V00", "E3995V00", "E3996V00", "E3997V00", "E3997VA0",
+                "E3997VB0", "E4002V00", "E4004V00", "E6782V00", "E6783V00", "E6953V00", "E6860V00",
+                "E6874VA0", "E6874V00", "E6874VB0", "E6875VB0", "E6875V00", "E7530V00", "E7530VA0",
+                "E7530VB0", "E7531V00", "E7531VA0", "E7531VB0", "E6875VA0")
+
+plat.distr <- distr[distr$product %in% plat.codes, ]
+plat.retrn <- retrn[retrn$product %in% plat.codes, ]
+```
+
+#Get monthly values summarised by Laura
+```{r}
+monthly2004<- read.delim("~/Work/proj/OPERATIONAL/production_forecasts/data/kuukausimyynti.txt")
+monthly2004$year<- as.factor(substr(monthly2004$kuukausi,1,4))
+m2004<- as.factor(substr(monthly2004$kuukausi,6,9))
+levels(m2004) <- c(8,7,2,4,12,6,10,3,11,9,1,5)
+monthly2004$month <- as.character(m2004)
+head(monthly2004,15)
+```
+
+
+
+```{r create_datasets, include = FALSE}
+# Create a full sequence of dates for imputation purposes
+all.dates <- (seq.Date(min(red.distr$date),
+                       max(red.distr$date),
+                       "day"))
+###           ###
+#   RED CELLS   #
+###           ###
+all.red <- aggregate(red.distr$quantity, by = list(red.distr$date), sum); colnames(all.red) <- c("date", "pcs")
+# Merge into a whole set with NAs
+all.red <- merge(x = data.frame(date = all.dates),
+                 y = all.red,
+                 all.x = TRUE)
+# Replace with zeroes
+all.red[is.na(all.red)] <- 0
+# Cut to time after 2014
+all.red <- all.red[all.red$date >= start_date, ]
+
+###           ###
+#  RED RETURNS  #
+###           ###
+
+all.red.retrn <- aggregate(red.retrn$quantity, by = list(red.retrn$date), sum); colnames(all.red.retrn) <- c("date", "pcs")
+# Merge into a whole set with NAs
+all.red.retrn <- merge(x = data.frame(date = all.dates),
+                 y = all.red.retrn,
+                 all.x = TRUE)
+# Replace with zeroes
+all.red.retrn[is.na(all.red.retrn)] <- 0
+# Cut to time after 2014
+all.red.retrn <- all.red.retrn[all.red.retrn$date >= start_date, ]
+
+
+
+
+###           ###
+#   PLATELETS   #
+###           ###
+all.plat <- aggregate(plat.distr$quantity, by = list(plat.distr$date), sum); colnames(all.plat) <- c("date", "pcs")
+# Merge into a whole set with NAs
+all.plat <- merge(x = data.frame(date = all.dates),
+                  y = all.plat,
+                  all.x = TRUE)
+# Replace with zeroes
+all.plat[is.na(all.plat)] <- 0
+# Cut to time after 2014
+all.plat <- all.plat[all.plat$date >= start_date, ]
+
+###           ###
+# PLAT RETURNS  #
+###           ###
+all.plat.retrn <- aggregate(plat.retrn$quantity, by = list(plat.retrn$date), sum); colnames(all.plat.retrn) <- c("date", "pcs")
+# Merge into a whole set with NAs
+all.plat.retrn <- merge(x = data.frame(date = all.dates),
+                  y = all.plat.retrn,
+                  all.x = TRUE)
+# Replace with zeroes
+all.plat.retrn[is.na(all.plat.retrn)] <- 0
+# Cut to time after 2014
+all.plat.retrn <- all.plat.retrn[all.plat.retrn$date >= start_date, ]
+```
+
+```{r datasets_monthly, include = FALSE, warning = FALSE}
+# Aggregate all by months
+red.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.red, FUN = sum)
+red.retrn.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.red.retrn, FUN = sum)
+
+
+plat.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.plat, FUN = sum)
+plat.retrn.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.plat.retrn, FUN = sum)
+
+
+```
+
+```{r}
+head(red.monthly)
+```
+
+# Format month level data
+
+```{r}
+red.2004 <- monthly2004[,c("month","year","Punasoluvalmisteet")]
+colnames(red.2004) <- colnames(red.monthly)
+red.2004$`month(date)` <- as.integer(red.2004$`month(date)`)
+red.2004$`year(date)` <- as.integer(as.character(red.2004$`year(date)`))
+red.2004<- red.2004[order(red.2004$`year(date)`,red.2004$`month(date)`),]
+red.2004$Date<- as.Date(as.yearmon(paste0(red.2004$`year(date)`,'-',red.2004$`month(date)`)))
+head(red.2004)
+```
+
+# Check month level data
+
+```{r}
+red.monthly$Date<- as.Date(as.yearmon(paste0(red.monthly$`year(date)`,'-',red.monthly$`month(date)`)))
+p <- ggplot(red.2004)
+p <- p +  geom_line(aes(x=Date,y=pcs))
+p <- p +  geom_line(aes(x=Date,y=pcs),data=red.monthly,color="red")
+p
+```
+
+For red take monthly data untill end of 2019 and continue with daily data from there.
+
+
+```{r}
+plat.2004 <- monthly2004[,c("month","year","Trombosyyttivalmisteet")]
+colnames(plat.2004) <- colnames(plat.monthly)
+plat.2004$`month(date)` <- as.integer(plat.2004$`month(date)`)
+plat.2004$`year(date)` <- as.integer(as.character(plat.2004$`year(date)`))
+plat.2004<- red.2004[order(plat.2004$`year(date)`,plat.2004$`month(date)`),]
+plat.2004$Date<- as.Date(as.yearmon(paste0(plat.2004$`year(date)`,'-',plat.2004$`month(date)`)))
+head(plat.2004)
+```
+
+```{r}
+plat.monthly$Date<- as.Date(as.yearmon(paste0(plat.monthly$`year(date)`,'-',plat.monthly$`month(date)`)))
+p <- ggplot(plat.2004)
+p <- p +  geom_line(aes(x=Date,y=pcs))
+p <- p +  geom_line(aes(x=Date,y=pcs),data=plat.monthly,color="red")
+p
+```
+
+Wow, there something in here I need to check...
+
+# Glue data together
+
+```{r}
+min(red.2004$Date)
+max(red.2004$Date)
+min(red.monthly$Date)
+max(red.monthly$Date)
+```
+```{r}
+
+red.monthly <- rbind(red.2004[red.2004$Date < as.Date("2019-01-01") ,],red.monthly[red.monthly$Date >= as.Date("2019-01-01") & red.monthly$Date < as.Date("2020-07-01")  ,])
+p <- ggplot(red.monthly)
+p <- p +  geom_line(aes(x=Date,y=pcs))
+p
+```
+
+
+```{r}
+# Dates
+#months <- seq(from = as.Date("2009-01-01"), to = max(distr$date), by = "month")
+months <- seq(from = min(red.monthly$Date), to = max(red.monthly$Date), by = "month") #This needs to be tuned based on your data set
+
+# Adjustment series
+adj <- as.numeric(bizdays(ts(months, start = decimal_date(as.Date("2009-01-01")), frequency = 12), FinCenter = "Zurich"))
+# scaler <- as.numeric(bizdays(ts(1, start = decimal_date(months[length(months)]), frequency = 12), FinCenter = "Zurich")) This was written to scale a singular forecasted month back to real values, for saving-to-file purposes
+
+reverse_adj <- as.numeric(bizdays(ts(seq(23), start = decimal_date(months[length(months)]), frequency = 12), FinCenter = "Zurich")) # This is the old implementation that used to be fed into the forecasting function. We'll now repurpose it so it can be used both for tabling and plotting.
+
+# Create a master frame
+monthly <- data.frame(date = months,
+                      red = red.monthly$pcs/adj
+                      #plat = plat.monthly$pcs/adj #First I need to figure out how to glue the data together
+                      )
+
+monthly_real <- data.frame(date = months,
+                           red = red.monthly$pcs
+                           #plat = plat.monthly$pcs #First I need to figure out how to glue the data together
+                           )
+
+#beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1) # Define beginning of (monthly) time here THIS IS FOR USING ONLY LAST FOR YEARS OF DATA
+#beginning <- tail(head(monthly$date, ((rw_years+1) * 12 + 1)), 1)
+beginning <- tail(head(monthly$date, ((rw_years) * 12 + 1)), 1) #When using full data start after 3 years of data beginning
+last_month <- tail(monthly$date, 1) # Not using "today()" as the data may not reach to current date
+
+# We will need these stored
+modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS", "STLF", "ARIMAX", "DYNREG", "NN", "COMBINED")
+beginning
+
+file <- "fulldata.rdata"
+out <- list(monthly=monthly, monthly_real=monthly_real)
+save(out,file=file)
+```
+
+
+
+### All red
+```{r monthly_model_selection_red, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
+# Define the series to be used
+# We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
+#segment <- head(tail(monthly$red, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
+#series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
+#Instead use full data
+series.ts <- ts(monthly$red,start =  c(2004, 1), frequency = 12)
+
+
+cat("Red\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+cat("Red\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
+modelname <- modelnames[chosen.model]
+cat(str_replace_all(paste0("Red;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
+cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+```
+
+```{r monthly_fcast_red, echo = FALSE, results = FALSE}
+# # Now forecast with the chosen model
+# fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
+# 
+# # Extended for yearly estimates
+# fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
+# 
+# # Scalings
+# fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
+# fdf_red_for_tables <- fdf_for_tables * reverse_adj # The tables need anything from 6 months to 23 months, so we just scale everything from the extended 
+```
+
+```{r save_monthly_red, echo = FALSE}
+#type <- "red"
+#save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years) 
+# # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+```
+
+### Platelets
+```{r monthly_model_selection_plat, echo = FALSE, results = FALSE, message=FALSE, warning=FALSE}
+# Define the series to be used
+# We want to use 4 years of data. 3 years for the width of the rolling window and we'll let that run for a year.
+# segment <- head(tail(monthly$plat, ((rw_years+1) * 12 + 1)), ((rw_years+1) * 12))
+# series.ts <- ts(segment, start = decimal_date(beginning), frequency = 12)
+# 
+# cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+# cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+# chosen.model <- select_model(beginning, series.ts, "monthly", rw_years)
+# modelname <- modelnames[chosen.model]
+# cat(str_replace_all(paste0("Plat;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
+# cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+# cat("\n", file=paste0("rw_testing/m_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+```
+
+```{r monthly_fcast_plat, echo = FALSE, results = FALSE}
+# # Now forecast with the chosen model
+# fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
+# fdf_for_tables <- chosen_forecast_extended(chosen.model, series.ts, monthly, freq = "monthly", rw_years)
+# 
+# fdf_for_plots <- fdf * reverse_adj[1:6] # We plot 6 months forward
+# fdf_pla_for_tables <- fdf_for_tables * reverse_adj # The tables need anything from 6 months to 23 months, so we just scale everything from the extended
+```
+
+```{r save_monthly_plat, echo = FALSE}
+# type <- "plat"
+# save_forecast(fdf, months = TRUE, modelname, monthly, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
+# # # write.csv(fdf, paste0(MONTHLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
+```
+
+
+```{r}
+ts.red <- ts(monthly$red, frequency = 12)
+decomposed <- stl(ts.red,s.window = "periodic")
+autoplot(decomposed)
+filename <- filename <- paste0(ROOTDIR, "/rw_testing/img/all_years/red_decomposition_gg_FIN.pdf")
+ggsave(filename=filename, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
+```
+
+```{r}
+seasonal <- decomposed$time.series[,1]
+ggAcf(seasonal)
+```
+
+```{r}
+
+plot.seasonal <- as.data.frame(cbind(seasonal[1:12],1:12))
+colnames(plot.seasonal) <- c("seasonal","month")
+p  <- ggplot(plot.seasonal)
+p <- p + geom_line(aes(y=seasonal,x=month)) + scale_x_continuous(breaks=1:12,labels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")) + xlab("Month") + ylab("Seasonal (pcs)")
+#c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+p
+filename <- filename <- paste0(ROOTDIR, "/rw_testing/img/all_years/red_decomposition_seasonal_gg_FIN.pdf")
+ggsave(filename=filename, p, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
+```
+
+It would be nice to add the NL data on the same plot!
+

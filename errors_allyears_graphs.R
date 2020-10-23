@@ -11,6 +11,8 @@ library(numbers)
 library(data.table)
 library(R.utils)
 library(DT)
+library(tidyverse)
+library(zoo)
 
 #SETTINGS
 
@@ -25,8 +27,8 @@ if (NL) {
 } else {
   ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/"
   groups <- c("RED")
-  
 }
+
 period <- "m"               # m for monthly, w for weakly
 rw <- 3
 # method.select <- c("snaive", "5-MA", "7-MA", "9-MA", "12-MA", "stl", "ets", "tbats", "stlf", "arimax", "dynreg", "nn", "combined")
@@ -65,7 +67,7 @@ df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", to
 # 13     nn 5.9707662         tbats
 #Put method.select <- c("stlf", "7-MA", "ets", "nn", "dynreg", "tbats")        # monthly
 #in the same order that they are in the file. IS THIS THE SAME IN FIN AND NL???
-method.select <- c("7-MA", "ets","tbats",  "stlf","dynreg", "nn")        # monthly
+method.select <- c("7-MA", "ets","tbats", "stlf", "dynreg", "nn")        # monthly
 #cbind(df[df$V1 %in% method.select,1:2],method.select)
 # > cbind(df[df$V1 %in% method.select,1:2],method.select)
 # V1        V2 method.select
@@ -119,35 +121,56 @@ if (period == "m") {
   pd <- ", weekly"
 }
 
-# plot averaged erorrs per method per year in history, 
+# plot averaged errors per method per year in history, 
 # for each blood group separately
 for (i in c(0:(length(groups)-1))) {
   start <- (i*m) + 1
   stop <- start + m - 1
-  df.group <- df.sums[c(start:stop),c(2:ncol(df.sums))]
-  group <- groups[i+1]
+  df.group <- df.sums[c(start:stop),]
   
+  # reorder rows so method order is equal to method.select
+  colnames(df.group)[colnames(df.group) == "df.V1"] <- "method"
+  df.plot = df.group[,2:ncol(df.group)]
+  for (mi in c(1:length(method.select))) {
+    method <- method.select[mi]
+    df.plot[mi,] = df.group[df.group["method"]==method, 2:ncol(df.group)]
+  }
+  
+  group <- groups[i+1]
   if (NL) {
     png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, ".png"))
   } else {
     png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, "_FIN.png"))
   }
-  plot(1, type = "n", main = paste0(group, ", rw", rw, pd, "\naveraged over each ", merge.months, t), xlim=c((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p)), ylim=c(0,max(df.group)), xlab="year", ylab="avg error")
+  plot(1, type = "n", main = paste0(group, ", rw", rw, pd, "\naveraged over each ", merge.months, t), xlim=c((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p)), ylim=c(0,max(df.plot)), xlab="year", ylab="avg error")
   for (i in c(1:nrow(df.group))) {
-    lines(x=seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p)), y=df.group[i,], col=colors[i], type="o", lwd=2, pch = 19)
+    lines(x=seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p)), y=df.plot[i,], col=colors[i], type="o", lwd=2, pch = 19)
   }
   legend("topleft", legend=method.names, col=colors, pch = 19)
   dev.off()
 }
 
 #Alternative plot for RED only as for the moment that is all what we have for FIN data
-library(tidyverse)
-library(zoo)
+if (NL) {
+  # take only RED section of data
+  start <- (0*m) + 1
+  stop <- start + m - 1
+  df.group <- df.sums[c(start:stop),c(1:ncol(df.sums))]
+  colnames(df.group)[colnames(df.group) == "df.V1"] <- "method"
+  
+  # reorder rows so method order is equal to method.select
+  df.plot = df.group[,2:ncol(df.group)]
+  for (i in c(1:length(method.select))) {
+    method <- method.select[i]
+    df.plot[i,] = df.group[df.group["method"]==method,2:ncol(df.group)]
+  }
+} else {
+  df.plot <- as_tibble(df.group)
+}
 names(colors) <- method.select
-df.plot<- as_tibble(df.group)
 colnames(df.plot) <- seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p))
 df.plot$Method <- method.select
-df.plot<- df.plot %>% pivot_longer(cols= !Method) %>% mutate(Year=as.numeric(name))
+df.plot <- df.plot %>% pivot_longer(cols= !Method) %>% mutate(Year=as.numeric(name))
 gr <- ggplot(df.plot)
 gr <- gr + geom_point(aes(x=Year,y=value,color=Method,group=Method),size=4)
 gr <- gr + geom_line(aes(x=Year,y=value,color=Method,group=Method),size=1.1)
@@ -161,12 +184,16 @@ if (NL) {
 }
 ggsave(filename=filename, gr, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
 
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> d00053341a2b173c09b75264b309059f60350f77
 #Another way to count....
 # d2 <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_all.txt"), header = FALSE, sep = ";")
 # d2 <- d2[d2$V1 %in% method.select,]
 # rownames(d2) <- NULL
 # as.yearmon(2008 + seq(0, (ncol(d2)-1))/12)
+
