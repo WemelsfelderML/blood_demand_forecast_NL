@@ -149,10 +149,10 @@ colnames(df.plot) <- seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(m
 df.plot$Method <- method.select
 df.plot<- df.plot %>% pivot_longer(cols= !Method) %>% mutate(Year=as.numeric(name))
 gr <- ggplot(df.plot)
-gr <- gr + geom_point(aes(x=Year,y=value,color=Method,group=Method))
-gr <- gr + geom_line(aes(x=Year,y=value,color=Method,group=Method))
-gr <- gr + scale_colour_manual(name = "Method",values = colors) + ylab("Prediction error (averaged over each 6 months)")
-gr <- gr + theme_bw()
+gr <- gr + geom_point(aes(x=Year,y=value,color=Method,group=Method),size=4)
+gr <- gr + geom_line(aes(x=Year,y=value,color=Method,group=Method),size=1.1)
+gr <- gr + scale_colour_manual(name = "Method",values = colors) + ylab("Prediction error \n (% of pcs averaged over each 6 months)")
+gr <- gr + theme_bw(base_size = 18)
 gr <- gr + theme(legend.position = "bottom", legend.direction = "horizontal")
 if (NL) {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", "red", "_gg.pdf")
@@ -160,6 +160,9 @@ if (NL) {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", "red", "_gg_FIN.pdf")
 }
 ggsave(filename=filename, gr, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
+
+
+
 
 
 #Another way to count....
