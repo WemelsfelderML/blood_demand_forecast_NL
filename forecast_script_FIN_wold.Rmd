@@ -1,10 +1,14 @@
 ---
-title: "Production Forecasts"
+title: "Production forecast error calculations for Finnish data"
 output: html_document
 ---
 
+Code is based on Esa Turkulainen's https://github.com/FRCBS/forecast-demo/blob/master/forecast_script_wo_weekly.Rmd 
+and Merel Wemelsfelder https://github.com/MerelWemelsfelder/blood_demand_forecast_NL/blob/master/forecast_script.Rmd .
+
+
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
-# echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201023.html')" | R --slave
+# echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201026.html')" | R --slave
 
 # Set working directory
 ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/" # Your directory
@@ -197,6 +201,8 @@ all.plat.retrn[is.na(all.plat.retrn)] <- 0
 all.plat.retrn <- all.plat.retrn[all.plat.retrn$date >= start_date, ]
 ```
 
+
+
 ```{r datasets_monthly, include = FALSE, warning = FALSE}
 # Aggregate all by months
 red.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.red, FUN = sum)
@@ -208,6 +214,14 @@ plat.retrn.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.plat.
 
 
 ```
+
+
+```{r}
+#Reduce returns from returns from deliveries to make numbers actual sales
+red.monthly$pcs <- red.monthly$pcs - red.retrn.monthly$pcs
+plat.monthly$pcs <- plat.monthly$pcs - plat.retrn.monthly$pcs
+```
+
 
 ```{r}
 head(red.monthly)
@@ -256,7 +270,7 @@ p <- p +  geom_line(aes(x=Date,y=pcs),data=plat.monthly,color="red")
 p
 ```
 
-Wow, there something in here I need to check...
+All looks good.
 
 # Glue data together
 
@@ -338,6 +352,7 @@ for(i in rw_ys) {
 }
 ```
 
+N.B. length of "rw_testing/m_errors_rwy", i, "_mean.txt" will be one month less than the actual data.
 
 
 ### Platelets
@@ -386,5 +401,4 @@ filename <- filename <- paste0(ROOTDIR, "/rw_testing/img/all_years/red_decomposi
 ggsave(filename=filename, p, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
 ```
 
-It would be nice to add the NL data on the same plot!
 
