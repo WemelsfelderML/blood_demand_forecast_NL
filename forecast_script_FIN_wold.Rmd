@@ -8,7 +8,7 @@ and Merel Wemelsfelder https://github.com/MerelWemelsfelder/blood_demand_forecas
 
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
-# echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201026.html')" | R --slave
+# echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201027.html')" | R --slave
 
 # Set working directory
 ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/" # Your directory
@@ -338,7 +338,8 @@ max(monthly$date)
 #Instead use full data
 series.ts <- ts(monthly$red,start =  c(2004, 1), frequency = 12)
 
-rw_ys <- c(3:8)
+#rw_ys <- c(3:8)
+rw_ys <- c(3:10)
 for(i in rw_ys) {
   b <- beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
   cat("beginning:",as.Date(b),"rw_years:",i,"\n")
@@ -360,7 +361,7 @@ N.B. length of "rw_testing/m_errors_rwy", i, "_mean.txt" will be one month less 
 # Define the series to be used
 series.ts <- ts(monthly$red,start =  c(2004, 1), frequency = 12)
 
-rw_ys <- c(3:8)
+
 for(i in rw_ys) {
   b <- beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
   cat("beginning:",as.Date(b),"rw_years:",i,"\n")
