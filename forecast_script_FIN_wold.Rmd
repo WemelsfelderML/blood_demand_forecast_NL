@@ -282,8 +282,17 @@ max(red.monthly$Date)
 ```
 ```{r}
 
-red.monthly <- rbind(red.2004[red.2004$Date < as.Date("2019-01-01") ,],red.monthly[red.monthly$Date >= as.Date("2019-01-01") & red.monthly$Date < as.Date("2020-07-01")  ,])
+red.monthly <- rbind(red.2004[red.2004$Date < as.Date("2019-01-01") ,],red.monthly[red.monthly$Date >= as.Date("2019-01-01") & red.monthly$Date < as.Date("2020-08-01")  ,])
 p <- ggplot(red.monthly)
+p <- p +  geom_line(aes(x=Date,y=pcs))
+p
+```
+
+
+```{r}
+#"2020-08-01" filter to get predictions untill 2020-06
+plat.monthly <- rbind(plat.2004[plat.2004$Date < as.Date("2019-01-01") ,],plat.monthly[plat.monthly$Date >= as.Date("2019-01-01") & plat.monthly$Date < as.Date("2020-08-01")  ,])
+p <- ggplot(plat.monthly)
 p <- p +  geom_line(aes(x=Date,y=pcs))
 p
 ```
@@ -302,13 +311,13 @@ reverse_adj <- as.numeric(bizdays(ts(seq(23), start = decimal_date(months[length
 
 # Create a master frame
 monthly <- data.frame(date = months,
-                      red = red.monthly$pcs/adj
-                      #plat = plat.monthly$pcs/adj #First I need to figure out how to glue the data together
+                      red = red.monthly$pcs/adj,
+                      plat = plat.monthly$pcs/adj 
                       )
 
 monthly_real <- data.frame(date = months,
-                           red = red.monthly$pcs
-                           #plat = plat.monthly$pcs #First I need to figure out how to glue the data together
+                           red = red.monthly$pcs,
+                           plat = plat.monthly$pcs 
                            )
 
 beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1) ## Define beginning of (monthly) time here THIS IS FOR USING ONLY LAST (rw_years +1) YEARS OF DATA for chosing model
@@ -341,7 +350,7 @@ series.ts <- ts(monthly$red,start =  c(2004, 1), frequency = 12)
 #rw_ys <- c(3:8)
 rw_ys <- c(3:10)
 for(i in rw_ys) {
-  b <- beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
+  b <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
   cat("beginning:",as.Date(b),"rw_years:",i,"\n")
   cat("Red\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
   cat("Red\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
@@ -356,30 +365,8 @@ for(i in rw_ys) {
 N.B. length of "rw_testing/m_errors_rwy", i, "_mean.txt" will be one month less than the actual data.
 
 
-### Platelets
-```{r monthly_model_selection_plat}
-# Define the series to be used
-series.ts <- ts(monthly$red,start =  c(2004, 1), frequency = 12)
-
-
-for(i in rw_ys) {
-  b <- beginning <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
-  cat("beginning:",as.Date(b),"rw_years:",i,"\n")
-  cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
-  cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
-  chosen.model <- select_model(b, series.ts, "monthly", i)
-  modelname <- modelnames[chosen.model]
-  cat(str_replace_all(paste0("Plat;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", i, "_chosen.txt"), append=TRUE)
-  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
-  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
-  
-}
-```
-
-
 ```{r}
-ts.red <- ts(monthly$red, frequency = 12)
-decomposed <- stl(ts.red,s.window = "periodic")
+decomposed <- stl(series.ts,s.window = "periodic")
 autoplot(decomposed)
 filename <- filename <- paste0(ROOTDIR, "/rw_testing/img/all_years/red_decomposition_gg_FIN.pdf")
 ggsave(filename=filename, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
@@ -399,6 +386,53 @@ p <- p + geom_line(aes(y=seasonal,x=month)) + scale_x_continuous(breaks=1:12,lab
 #c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 p
 filename <- filename <- paste0(ROOTDIR, "/rw_testing/img/all_years/red_decomposition_seasonal_gg_FIN.pdf")
+ggsave(filename=filename, p, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
+```
+
+
+
+### Platelets
+```{r monthly_model_selection_plat}
+# Define the series to be used
+series.ts <- ts(monthly$plat,start =  c(2004, 1), frequency = 12)
+
+
+for(i in rw_ys) {
+  b <- head(tail(monthly$date, ((rw_years+1) * 12 + 1)), 1)
+  cat("beginning:",as.Date(b),"rw_years:",i,"\n")
+  cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
+  cat("Plat\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
+  chosen.model <- select_model(b, series.ts, "monthly", i)
+  modelname <- modelnames[chosen.model]
+  cat(str_replace_all(paste0("Plat;", modelname, "\n")," ",""), file=paste0("rw_testing/m_errors_rwy", i, "_chosen.txt"), append=TRUE)
+  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_mean.txt"), append=TRUE)
+  cat("\n", file=paste0("rw_testing/m_errors_rwy", i, "_all.txt"), append=TRUE)
+  
+}
+```
+
+
+```{r}
+decomposed <- stl(series.ts,s.window = "periodic")
+p <- autoplot(decomposed)
+filename <- filename <- paste0(ROOTDIR, "/rw_testing/img/all_years/plat_decomposition_gg_FIN.pdf")
+ggsave(filename=filename, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
+```
+
+```{r}
+seasonal <- decomposed$time.series[,1]
+ggAcf(seasonal)
+```
+
+```{r}
+
+plot.seasonal <- as.data.frame(cbind(seasonal[1:12],1:12))
+colnames(plot.seasonal) <- c("seasonal","month")
+p  <- ggplot(plot.seasonal)
+p <- p + geom_line(aes(y=seasonal,x=month)) + scale_x_continuous(breaks=1:12,labels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")) + xlab("Month") + ylab("Seasonal (pcs)")
+#c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+p
+filename <- filename <- paste0(ROOTDIR, "/rw_testing/img/all_years/plat_decomposition_seasonal_gg_FIN.pdf")
 ggsave(filename=filename, p, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
 ```
 

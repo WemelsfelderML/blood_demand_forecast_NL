@@ -32,19 +32,21 @@ if (NL) {
   ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
   groups <- c("RED", "Ominus", "Oplus", "Aminus", "Aplus", "Bminus", "Bplus", "ABminus", "ABplus", "PLAT")
 } else {
-  ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/20201023/"
-  groups <- c("RED")
+  ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/20201023_error_ts_plots/"
+  groups <- c("RED","PLAT")
 }
 
 period <- "m"               # m for monthly, w for weakly
 rw <- 5
 if (!is.na(commandArgs()[4])) {
   rw <- as.numeric(commandArgs()[4])
+  cat("Setting rw to",rw,"\n")
 }
 
 merge.months = 6
 if (!is.na(commandArgs()[5])) {
   merge.months <- as.numeric(commandArgs()[5])
+  cat("Setting merge.months to",merge.months,"\n")
 }
 
 # method.select <- c("snaive", "5-MA", "7-MA", "9-MA", "12-MA", "stl", "ets", "tbats", "stlf", "arimax", "dynreg", "nn", "combined")
@@ -66,7 +68,14 @@ if (!is.na(commandArgs()[6])) {
 # DATA PROCESSING
 
 # reshape error data frames and put them together in a hash set with rolling window size as key
+file <- paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_all.txt")
+if (file.exists(file)) {
 df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_all.txt"), header = FALSE, sep = ";")
+cat("Read",nrow(df),"rows from file",file,"\n")
+} else {
+  stop()
+}
+
 #df <- df[df$V1 %in% method.select,]
 #> df$V1 %in% method.select
 #[1] FALSE FALSE FALSE  TRUE FALSE FALSE FALSE  TRUE  TRUE  TRUE FALSE  TRUE  TRUE FALSE
@@ -88,7 +97,7 @@ df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", to
 # combined
 
 
-df <- df[df$V1 %in% method.select,]
+df <- df[as.character(df$V1) %in% method.select,]
 rownames(df) <- NULL
 
 # abstract year span from original data
@@ -98,8 +107,11 @@ if (NL) {
   #This is only used to get the max value
 } else {
   d <- data.frame(year=2020)
-  #Finish data extends to 2020.06, predictions extend to 2020.05. Hence, remove last 5 timepoints to make error data extend to 2019.12.01
-  df <- df[,- ((ncol(df) -5) : ncol(df))]
+  #FIN data extends to 2020.06, predictions extend to 2020.05.
+  #NL data extends to 2019.12, predictions extend to 2019.11
+  #Hence, remove last 6 timepoints to make error data extend to 2019.11.01 which is the last prediction in NL data
+  #df <- df[,- ((ncol(df) -6) : ncol(df))]
+  #BUT SHOULD I MAKE THEM MATCH OR NOT!? -> no it is good to show the corona period
 }
 
 
@@ -163,6 +175,9 @@ for (i in c(0:(length(groups)-1))) {
   dev.off()
 }
 
+####################
+# ONCE PLAT PRED DONE UPDATE THIS PART TO WORK WITH RED AND PLAT
+####################
 #Alternative plot for RED only as for the moment that is all what we have for FIN data
 if (NL) {
   # take only RED section of data
@@ -208,9 +223,4 @@ if (NL) {
 ggsave(filename=filename, gr, width = 360,  height = 450,units="mm", dpi=600, scale=1.0)
 
 
-#Another way to count....
-# d2 <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rw), "_all.txt"), header = FALSE, sep = ";")
-# d2 <- d2[d2$V1 %in% method.select,]
-# rownames(d2) <- NULL
-# as.yearmon(2008 + seq(0, (ncol(d2)-1))/12)
 
