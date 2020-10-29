@@ -15,7 +15,7 @@ if (NL) {
   ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
   groups <- c("RED", "Ominus", "Oplus", "Aminus", "Aplus", "Bminus", "Bplus", "ABminus", "ABplus", "PLAT")
 } else {
-  ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/20201026/"
+  ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/20201026_ttestcounts//"
   groups <- c("RED","PLAT")
 }
 

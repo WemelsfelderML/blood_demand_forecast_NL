@@ -4,6 +4,7 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(hash)
+library(kableExtra)
 
 #First: run forecast_script_FIN_wold.Rmd e.g. echo "rmarkdown::render('forecast_script_FIN_wold.Rmd', clean=TRUE,output_format='html_document',output_file='results/forecast_script_FIN_wold_20201026.html')" | R --slave
 #to process data and create predictions namely rw_testing/m_errors* files
@@ -19,7 +20,7 @@ if (NL) {
   ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
   groups <- c("RED", "Ominus", "Oplus", "Aminus", "Aplus", "Bminus", "Bplus", "ABminus", "ABplus", "PLAT")
 } else {
-  ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/20201026/"
+  ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/20201026_ttestcounts//"
   groups <- c("RED","PLAT")
 }
 
