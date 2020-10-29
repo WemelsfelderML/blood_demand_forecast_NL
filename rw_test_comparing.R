@@ -9,7 +9,7 @@ library(hash)
 ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 groups <- c("RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLAT")
 period <- "m"               # m for monthly, w for weakly
-rw.all <- c(3:9)            # selection of rolling windows to be tested
+rw.all <- c(3:8)            # selection of rolling windows to be tested
 
 fun <- function(ROOTDIR, period, group, rw.all){
   # load data

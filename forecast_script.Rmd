@@ -859,20 +859,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("Red;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_red, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_red, echo = FALSE}
 type <- "red"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_red_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -899,20 +893,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("O-;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_Ominus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_Ominus, echo = FALSE}
 type <- "Ominus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_Ominus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -939,20 +927,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("O+;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_Oplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_Oplus, echo = FALSE}
 type <- "Oplus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_Oplus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -979,20 +961,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("A-;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_Aminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_Aminus, echo = FALSE}
 type <- "Aminus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_Aminus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -1019,20 +995,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("A+;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_Aplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_Aplus, echo = FALSE}
 type <- "Aplus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_Aplus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -1059,20 +1029,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("B-;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_Bminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_Bminus, echo = FALSE}
 type <- "Bminus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_Bminus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -1099,20 +1063,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("B+;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_Bplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_Bplus, echo = FALSE}
 type <- "Bplus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_Bplus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -1139,20 +1097,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("AB-;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_ABminus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_ABminus, echo = FALSE}
 type <- "ABminus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_ABminus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -1179,20 +1131,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("AB+;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_ABplus, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_ABplus, echo = FALSE}
 type <- "ABplus"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_ABplus_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 
@@ -1219,20 +1165,14 @@ modelname <- modelnames[chosen.model]
 cat(str_replace_all(paste0("Plat;", modelname, "\n")," ",""), file=paste0("rw_testing/w_errors_rwy", rw_years, "_chosen.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
 cat("\n", file=paste0("rw_testing/w_errors_rwy", rw_years, "_all.txt"), append=TRUE)
-```
 
-```{r weekly_fcast_plat, echo = FALSE, results = FALSE}
 # Now forecast with the chosen model
 fdf <- chosen_forecast(chosen.model, series.ts, monthly, freq = "weekly", rw_years)
-```
 
-```{r save_weekly_plat, echo = FALSE}
 type <- "plat"
 save_forecast(fdf, months = FALSE, modelname, weekly, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), reverse_adj, rw_years)
 # write.csv(fdf, paste0(WEEKLYDIR, type, "_rwy", rw_years, ".csv"), row.names = FALSE)
-```
 
-```{r, weekly_plat_fig, fig.align = "center", echo = FALSE}
 draw_forecast(fdf, freq = "weekly", history = weekly, type, modelname, palette)
 ```
 

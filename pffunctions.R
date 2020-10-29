@@ -207,8 +207,8 @@ select_model <- function(beginning, series.ts, freq, rw_years){
   
   for (method in methods) {
     apes <- apes.hash[[method]]
-    cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/", period, "_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
-    cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/", period, "_errors_rwy", rw_years, "_all.txt"), append=TRUE)
+    # cat(str_replace_all(paste0(method, ";", mean(apes), "\n")," ",""), file=paste0("rw_testing/", period, "_errors_rwy", rw_years, "_mean.txt"), append=TRUE)
+    # cat(str_replace_all(paste0(method, ";", str_replace_all(toString(apes),", ",";"), "\n")," ",""), file=paste0("rw_testing/", period, "_errors_rwy", rw_years, "_all.txt"), append=TRUE)
   }
   
   all.apes <- c()

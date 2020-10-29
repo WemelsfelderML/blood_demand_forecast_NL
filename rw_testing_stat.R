@@ -12,21 +12,21 @@ ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 
 # "avg" for taking average result of all methods, 
 # "best" for taking only result of best performing method
-period <- "w"               # m for monthly, w for weakly
+period <- "m"               # m for monthly, w for weakly
 groups <- c("RED", "O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+", "PLAT")
 
 # list of all considered rolling window sizes (years)
 rolling_windows <- c(3:8)
 
 # put everything in a function in order to efficiently execute for each blood group
-fun <- function(method_avg_best, period, group, rolling_windows){
+fun <- function(period, group, rolling_windows){
   
   # PRE-PROCESSING
   
   # read errors of first rolling window to determine the set of used models
   df <- read.delim(file = paste0(ROOTDIR, "rw_testing/", period, "_errors_rwy", toString(rolling_windows[1]), "_all.txt"), header = FALSE, sep = ";")
   index_start <- match(group, toupper(df$V1)) + 1
-  index_stop <- index_start + nrow(df)/10 - 2
+  index_stop <- index_start + (nrow(df)/length(groups)) - 2
   used_models <- df[c(index_start:index_stop),]$V1
   
   # initialize data frame with all prediction errors
@@ -88,5 +88,5 @@ fun <- function(method_avg_best, period, group, rolling_windows){
 }
 
 for (group in groups) {
-  fun(method_avg_best, period, group, rolling_windows)
+  fun(period, group, rolling_windows)
 }
