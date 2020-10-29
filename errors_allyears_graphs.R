@@ -197,7 +197,7 @@ gr <- gr + geom_line(aes(x=Year,y=value,color=Method,group=Method),size=1.1)
 gr <- gr + scale_colour_manual(name = "Method",values = colors) + ylab("Prediction error \n (% of pcs averaged over each 6 months)")
 gr <- gr + theme_bw(base_size = 18)
 gr <- gr + theme(legend.position = "bottom", legend.direction = "horizontal")
-gr <- gr + facet_grid(.~Group, scales = "free_y") +  theme(axis.text.x = element_text(angle = 90)) 
+gr <- gr + facet_wrap(~Group, scales = "free_y") +  theme(axis.text.x = element_text(angle = 90)) 
 if (NL) {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months, "_red", "_gg.pdf")
 } else {
