@@ -146,6 +146,7 @@ if (period == "m") {
   pd <- ", weekly"
 }
 
+data <- data.frame(matrix(ncol=ncol(df.sums+1),nrow=0))
 # plot averaged errors per method per year in history, 
 # for each blood group separately
 for (i in c(0:(length(groups)-1))) {
@@ -163,64 +164,55 @@ for (i in c(0:(length(groups)-1))) {
   
   group <- groups[i+1]
   if (NL) {
-    png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, ".png"))
+#    png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, ".png"))
   } else {
-    png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, "_FIN.png"))
+#    png(file= paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", toString(rw), "_", group, "_FIN.png"))
   }
   plot(1, type = "n", main = paste0(group, ", rw", rw, pd, "\naveraged over each ", merge.months, t), xlim=c((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p)), ylim=c(0,max(df.plot)), xlab="year", ylab="avg error")
   for (i in c(1:nrow(df.group))) {
     lines(x=seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p)), y=df.plot[i,], col=colors[i], type="o", lwd=2, pch = 19)
   }
   legend("topleft", legend=method.names, col=colors, pch = 19)
-  dev.off()
+#  dev.off()
+  df.plot$Group <- group
+  df.plot$Method <- method.select
+  data <- rbind(data,df.plot)
 }
 
 ####################
 # ONCE PLAT PRED DONE UPDATE THIS PART TO WORK WITH RED AND PLAT
 ####################
-#Alternative plot for RED only as for the moment that is all what we have for FIN data
-if (NL) {
-  # take only RED section of data
-  start <- (0*m) + 1
-  stop <- start + m - 1
-  df.group <- df.sums[c(start:stop),c(1:ncol(df.sums))]
-  colnames(df.group)[colnames(df.group) == "df.V1"] <- "method"
-  
-  # reorder rows so method order is equal to method.select
-  df.plot = df.group[,2:ncol(df.group)]
-  for (i in c(1:length(method.select))) {
-    method <- method.select[i]
-    df.plot[i,] = df.group[df.group["method"]==method,2:ncol(df.group)]
-  }
-} else {
-  df.plot <- as_tibble(df.group)
-}
+data <- as_tibble(data)
+
 names(colors) <- method.select
 #colnames(df.plot) <- seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p))
-colnames(df.plot) <- c("Method",seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p)))
+colnames(data) <- c(seq((max(d$year)-(n*(merge.months/p))+1), (max(d$year)+1-(merge.months)/p), (merge.months/p)),"Group","Method")
+
 #df.plot$Method <- method.select
-df.plot <- df.plot %>% pivot_longer(cols= !Method) %>% mutate(Year=as.numeric(name))
-gr <- ggplot(df.plot)
+data <- data %>% pivot_longer(cols= -c("Method","Group")) %>% mutate(Year=as.numeric(name),
+                                                                     Group= recode(Group, RED= "Red cells",PLAT="Platelets"))  
+gr <- ggplot(data %>% filter(Group == "Red cells" || Group == "Platelets" ))
 gr <- gr + geom_point(aes(x=Year,y=value,color=Method,group=Method),size=4)
 gr <- gr + geom_line(aes(x=Year,y=value,color=Method,group=Method),size=1.1)
 gr <- gr + scale_colour_manual(name = "Method",values = colors) + ylab("Prediction error \n (% of pcs averaged over each 6 months)")
 gr <- gr + theme_bw(base_size = 18)
 gr <- gr + theme(legend.position = "bottom", legend.direction = "horizontal")
+gr <- gr + facet_grid(.~Group, scales = "free_y") +  theme(axis.text.x = element_text(angle = 90)) 
 if (NL) {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months, "_red", "_gg.pdf")
 } else {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months, "_red", "_gg_FIN.pdf")
 }
-ggsave(filename=filename, gr, width = 180,  height = 180,units="mm", dpi=600, scale=1.0)
+ggsave(filename=filename, gr, width = 360,  height = 180,units="mm", dpi=600, scale=1.0)
 
-gr <- gr + facet_wrap(~Method) +  theme(axis.text.x = element_text(angle = 90)) 
+gr <- gr + facet_grid(Method~Group) +  theme(axis.text.x = element_text(angle = 90)) 
 
 if (NL) {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months,"_l",length(method.select) ,"_red", "_gg_f.pdf")
 } else {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months,"_l",length(method.select) ,"_red", "_gg_f_FIN.pdf")
 }
-ggsave(filename=filename, gr, width = 360,  height = 450,units="mm", dpi=600, scale=1.0)
+ggsave(filename=filename, gr, width = 360,  height = length(method.select) * 150 ,units="mm", dpi=600, scale=1.0,limitsize = FALSE)
 
 
 
