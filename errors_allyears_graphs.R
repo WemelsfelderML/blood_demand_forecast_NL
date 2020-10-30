@@ -24,20 +24,21 @@ library(zoo)
 #SETTINGS
 
 #Select are we using NL or FIN data
-NL <- FALSE
+NL <- TRUE
 #NL <- TRUE
 
 # working directory
 if (NL) {
   ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
-  groups <- c("RED", "Ominus", "Oplus", "Aminus", "Aplus", "Bminus", "Bplus", "ABminus", "ABplus", "PLAT")
+  # groups <- c("RED", "Ominus", "Oplus", "Aminus", "Aplus", "Bminus", "Bplus", "ABminus", "ABplus", "PLAT")
 } else {
   ROOTDIR <- "~/Work/proj/OPERATIONAL/blood_demand_forecast_NL/20201023_error_ts_plots/"
-  groups <- c("RED","PLAT")
+  # groups <- c("RED","PLAT")
 }
+groups <- c("RED","PLAT")
 
 period <- "m"               # m for monthly, w for weakly
-rw <- 5
+rw <- 3
 if (!is.na(commandArgs()[4])) {
   rw <- as.numeric(commandArgs()[4])
   cat("Setting rw to",rw,"\n")
@@ -51,7 +52,7 @@ if (!is.na(commandArgs()[5])) {
 
 # method.select <- c("snaive", "5-MA", "7-MA", "9-MA", "12-MA", "stl", "ets", "tbats", "stlf", "arimax", "dynreg", "nn", "combined")
 # method.select <- c("combined", "snaive", "stl", "5-MA", "ets", "dynreg")    # weekly
-method.select <- c("7-MA", "ets","tbats", "stlf", "dynreg", "nn")        # monthly
+method.select <- c("7-MA", "ets","tbats", "stlf", "nn", "snaive")        # monthly
 
 if (!is.na(commandArgs()[6])) {
   merge.param <- commandArgs()[6]
@@ -59,7 +60,7 @@ if (!is.na(commandArgs()[6])) {
     method.select <- c("snaive", "5-MA", "7-MA", "9-MA", "12-MA", "stl", "ets", "tbats", "stlf", "arimax", "dynreg", "nn", "combined")
   }
   if (merge.param == "s") {
-    method.select <- c("7-MA", "ets","tbats", "stlf", "dynreg", "nn")
+    method.select <- c("7-MA", "ets","tbats", "stlf", "nn", "snaive")
   }
 }
 
@@ -74,8 +75,15 @@ if (file.exists(file)) {
 } else {
   stop()
 }
-df <- df[as.character(df$V1) %in% method.select,]
 
+df.groups <- data.frame()
+for (group in groups) {
+  start <- as.numeric(rownames(df[toupper(df$V1) == group,]))
+  stop <- start + 13
+  df.groups <- rbind(df.groups, df[c(start:stop),])
+}
+
+df <- df.groups[as.character(df.groups$V1) %in% method.select,]
 rownames(df) <- NULL
 
 # abstract year span from original data
@@ -92,13 +100,11 @@ if (NL) {
   #BUT SHOULD I MAKE THEM MATCH OR NOT!? -> no it is good to show the corona period
 }
 
-
-
 # number of methods tested for each blood group
 m <- length(method.select)
 method.names <- array(df[c(1:m),1])
 if (m == 13) {
-  colors = append(brewer.pal(12, name="Paired"), "#555555")
+  colors = append(brewer.pal(12, name="Set3"), "#555555")
 } else {
   colors = brewer.pal(m, name="Set3")
 }
@@ -124,7 +130,7 @@ if (period == "m") {
   pd <- ", weekly"
 }
 
-data <- data.frame(matrix(ncol=ncol(df.sums+1),nrow=0))
+data <- data.frame(matrix(ncol=ncol(df.sums)+1,nrow=0))
 # plot averaged errors per method per year in history, 
 # for each blood group separately
 for (i in c(0:(length(groups)-1))) {
@@ -134,10 +140,10 @@ for (i in c(0:(length(groups)-1))) {
   
   # reorder rows so method order is equal to method.select
   colnames(df.group)[colnames(df.group) == "df.V1"] <- "method"
-  df.plot = df.group[,2:ncol(df.group)]
+  df.plot <- df.group[,2:ncol(df.group)]
   for (mi in c(1:length(method.select))) {
     method <- method.select[mi]
-    df.plot[mi,] = df.group[df.group["method"]==method, 2:ncol(df.group)]
+    df.plot[mi,] <- df.group[df.group["method"]==method, 2:ncol(df.group)]
   }
   
   group <- groups[i+1]
@@ -155,7 +161,7 @@ for (i in c(0:(length(groups)-1))) {
 #  dev.off()
   df.plot$Group <- group
   df.plot$Method <- method.select
-  data <- rbind(data,df.plot)
+  data <- rbind(data, df.plot)
 }
 
 ####################
@@ -178,7 +184,7 @@ gr <- gr + theme_bw(base_size = 18)
 gr <- gr + theme(legend.position = "bottom", legend.direction = "horizontal")
 gr <- gr + facet_wrap(~Group, scales = "free_y") +  theme(axis.text.x = element_text(angle = 90)) 
 if (NL) {
-  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months, "_red", "_gg.pdf")
+  filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months, "_red", "_gg_NL.pdf")
 } else {
   filename <- paste0(ROOTDIR, "rw_testing/img/all_years/", period, "_rwy", rw, "_m",merge.months, "_red", "_gg_FIN.pdf")
 }

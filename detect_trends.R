@@ -17,11 +17,15 @@ library(nlme)
 # working directory
 ROOTDIR <- "/home/merel/Documents/Sanquin/blood_demand_forecast_NL/"
 source(paste0(ROOTDIR, "pffunctions.R"))
+group = "plat"    # red, plat
 
 # Read data file
-df <- read.delim(file = "data/data.csv", header = FALSE, sep = ";")
-df <- df[df$V2 != "",][c(2:10)][-c(1),]
-rw_years <- 3
+df <- read.delim(file = paste0(ROOTDIR, "data/data.csv"), header = FALSE, sep = ";")
+if (group == "red") {
+  df <- df[df$V2 != "",][c(2:10)][-c(1),]
+} else if (group == "plat") {
+  df <- df[df$V2 != "",][c(24:32)][-c(1),]
+}
 
 names(df) <- as.matrix(df[1, ]);
 df <- df[-1, ];
@@ -39,10 +43,10 @@ df <- df1
 df$date <- mdy(df$date)
 df$quantity <- as.numeric(as.character(df$quantity))
 df$quantity[is.na(df$quantity)] <- 0
-df$product <- "Erytrocyten"
+# df$product <- "Erytrocyten"
 
 # Product codes for red cell products
-red.distr <- df[,c("date", "product", "quantity", "ABO")] # "volume", "exp"
+red.distr <- df[,c("date", "quantity", "ABO")] # "volume", "exp"
 
 # Create a full sequence of dates for imputation purposes
 all.dates <- (seq.Date(min(red.distr$date),
@@ -57,13 +61,10 @@ red.monthly <- aggregate(pcs ~ month(date) + year(date), data = all.red, FUN = s
 months <- seq(from = as.Date("2009-01-01"), to = max(red.distr$date), by = "month")
 
 adj <- as.numeric(bizdays(ts(months, start = decimal_date(as.Date("2009-01-01")), frequency = 12), FinCenter = "Zurich"))
-reverse_adj <- as.numeric(bizdays(ts(seq(23), start = decimal_date(months[length(months)]), frequency = 12), FinCenter = "Zurich")) # This is the old implementation that used to be fed into the forecasting function. We'll now repurpose it so it can be used both for tabling and plotting.
 
 # Create a master frame
 monthly <- data.frame(date = months,
                       red = red.monthly$pcs/adj)
-monthly_real <- data.frame(date = months,
-                           red = red.monthly$pcs)
 
 # We will need these stored
 modelnames <- c("SNAIVE", "5-MA", "7-MA", "9-MA", "12-MA", "STL", "ETS", "TBATS", "STLF", "ARIMAX", "DYNREG", "NN", "COMBINED")
@@ -86,15 +87,21 @@ daily <- tail(daily, nrow(daily)-(nrow(daily) %% 7))
 rownames(daily) <- NULL
 daily$day <- as.numeric(rownames(daily))
 
-ts.m <- ts(data = monthly$red, frequency = 12)
-ts.w <- ts(data = weekly$red, frequency = 52)
-ts.d <- ts(data = daily$pcs, frequency = 7)
+ts.m <- ts(data = monthly$red, start = c(2009, 1), frequency = 12)
+ts.w <- ts(data = weekly$red, start = c(2009, 1), frequency = 52)
+ts.d <- ts(data = daily$pcs, start = c(2009, 1), frequency = 7)
 
-stl.m = stl(ts.m, "periodic")
-autoplot(stl.m, main = "STL decomposition of all red blood cell data\nseasonality: month / year")
+stl.m <- stl(ts.m, "periodic")
+filename <- paste0(ROOTDIR, "img/",group,"_decomposition_gg_NL.pdf")
+ggsave(filename=filename, autoplot(stl.m), width = 180,  height = 180, units="mm", dpi=600, scale=1.0)
 
-stl.w = stl(ts.w, "periodic")
-autoplot(stl.w, main = "STL decomposition of all red blood cell data\nseasonality: week / year")
+# months <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+filename <- paste0(ROOTDIR, "img/",group,"_decomposition_seasonal_gg_NL.pdf")
+df.plot <- autoplot(ts(data.frame(stl.m$time.series[c(1:12),1])), xlab = "Month", ylab = "Seasonal (pcs)")
+ggsave(filename=filename, df.plot, width = 180,  height = 180, units="mm", dpi=600, scale=1.0)
+
+# stl.w = stl(ts.w, "periodic")
+# autoplot(stl.w, main = "STL decomposition of all red blood cell data\nseasonality: week / year")
 
 # stl.d = stl(ts.d, "periodic")
 # autoplot(stl.d, main = paste0("STL decomposition of all red blood cell data\nseasonality: day / week (", tail(daily$year, 1), ")"))
@@ -121,22 +128,20 @@ autoplot(stl.w, main = "STL decomposition of all red blood cell data\nseasonalit
 # autoplot(as.ts(ts.w), main="red weekly")
 # 
 # # trend
-trend.m = ma(ts.m, order = 12, centre = T)
+# trend.m = ma(ts.m, order = 12, centre = T)
 # trend.w = ma(ts.w, order = 52, centre = T)
 # autoplot(trend.m, main="trend monthly")
 # autoplot(trend.w, main="trend weekly")
 # 
 # # detrend
-detrend.m = ts.m - trend.m
+# detrend.m = ts.m - trend.m
 # detrend.w = ts.w - trend.w
 # autoplot(detrend.m, main="detrend monthly")
 # autoplot(detrend.w, main="detrend weekly")
 # 
 # # seasonality
-m.m = t(matrix(data = detrend.m, nrow = 12))
-seasonal.m = colMeans(m.m, na.rm = T)
-autoplot(as.ts(rep(seasonal.m,1)), main="seasonality monthly")
-# 
+# m.m = t(matrix(data = detrend.m, nrow = 12))
+# seasonal.m = colMeans(m.m, na.rm = T) 
 # m.w = t(matrix(data = detrend.w, nrow = 52))
 # seasonal.w = colMeans(m.w, na.rm = T)
 # autoplot(as.ts(rep(seasonal.w,1)), main="seasonality weekly")
