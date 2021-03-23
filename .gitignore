@@ -7,6 +7,9 @@
 *.html
 /archive/
 /histories/
+data/
+img/
+rw_testing/
 
 # History files
 .Rhistory
